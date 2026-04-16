@@ -1,26 +1,33 @@
 <?php
 session_start();
-require_once __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/../../Controller/ProfilController.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: /TinyTrack/View/auth/login.php');
     exit;
 }
 
-$db = Database::getInstance()->getConnection();
+$profilCtrl = new ProfilController();
+$errors = [];
+$successMsg = null;
 
-$stmt = $db->prepare("SELECT * FROM user WHERE id = :id");
-$stmt->execute([':id' => $_SESSION['user_id']]);
-$user = $stmt->fetch();
+// Handle edit
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_profil'])) {
+    $result = $profilCtrl->updateProfil($_SESSION['user_id'], $_POST);
+    if ($result['success']) {
+        $successMsg = "Profil mis à jour avec succès !";
+    } else {
+        $errors = $result['errors'];
+    }
+}
 
+$user = $profilCtrl->getProfil($_SESSION['user_id']);
 $role = $_SESSION['user_role'];
+$editMode = isset($_GET['edit']);
 
-// Get children if parent
 $enfants = [];
 if ($role === 'parent') {
-    $stmt = $db->prepare("SELECT e.*, g.nom AS groupe_nom FROM enfant e LEFT JOIN groupe g ON e.groupe_id = g.id WHERE e.parent_id = :pid ORDER BY e.prenom");
-    $stmt->execute([':pid' => $_SESSION['user_id']]);
-    $enfants = $stmt->fetchAll();
+    $enfants = $profilCtrl->getEnfantsParent($_SESSION['user_id']);
 }
 
 include 'template/header.php';
@@ -55,9 +62,52 @@ include 'template/header.php';
               <i class="fas fa-shield-alt"></i> Administrateur
             <?php endif; ?>
           </span>
+          <div style="margin-top:0.8rem;">
+            <?php if (!$editMode): ?>
+              <a href="profil.php?edit=1" style="background:rgba(255,255,255,0.25);color:#fff;padding:0.4rem 1.2rem;border-radius:20px;font-size:0.8rem;font-weight:700;text-decoration:none;"><i class="fas fa-edit"></i> Modifier mon profil</a>
+            <?php else: ?>
+              <a href="profil.php" style="background:rgba(255,255,255,0.25);color:#fff;padding:0.4rem 1.2rem;border-radius:20px;font-size:0.8rem;font-weight:700;text-decoration:none;"><i class="fas fa-times"></i> Annuler</a>
+            <?php endif; ?>
+          </div>
         </div>
 
-        <!-- Infos -->
+        <?php if ($successMsg): ?>
+          <div style="padding:0.8rem 2rem 0;"><div class="alert alert-success" style="border-radius:14px;border:none;"><i class="fas fa-check-circle"></i> <?= $successMsg ?></div></div>
+        <?php endif; ?>
+        <?php if (!empty($errors)): ?>
+          <div style="padding:0.8rem 2rem 0;"><div class="alert alert-danger" style="border-radius:14px;border:none;"><ul class="mb-0"><?php foreach ($errors as $e): ?><li><?= htmlspecialchars($e) ?></li><?php endforeach; ?></ul></div></div>
+        <?php endif; ?>
+
+        <?php if ($editMode): ?>
+        <!-- EDIT FORM -->
+        <div style="padding:1.5rem 2rem;">
+          <form method="POST" novalidate>
+            <input type="hidden" name="edit_profil" value="1">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label style="font-weight:700;font-size:0.85rem;color:#555;">Nom</label>
+                <input type="text" name="nom" class="form-control" style="border-radius:12px;border:2px solid #E8E8E8;" value="<?= htmlspecialchars($user['nom']) ?>">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label style="font-weight:700;font-size:0.85rem;color:#555;">Prénom</label>
+                <input type="text" name="prenom" class="form-control" style="border-radius:12px;border:2px solid #E8E8E8;" value="<?= htmlspecialchars($user['prenom']) ?>">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label style="font-weight:700;font-size:0.85rem;color:#555;">Email</label>
+                <input type="text" name="email" class="form-control" style="border-radius:12px;border:2px solid #E8E8E8;" value="<?= htmlspecialchars($user['email']) ?>">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label style="font-weight:700;font-size:0.85rem;color:#555;">Téléphone</label>
+                <input type="text" name="telephone" class="form-control" style="border-radius:12px;border:2px solid #E8E8E8;" value="<?= htmlspecialchars($user['telephone'] ?? '') ?>">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-success w-100" style="border-radius:25px;padding:0.7rem;font-weight:700;"><i class="fas fa-save"></i> Enregistrer</button>
+          </form>
+        </div>
+        <?php else: ?>
+        <!-- Infos (read only) -->
         <div style="padding:1.5rem 2rem;">
           <div class="row">
             <div class="col-md-6 mb-3">
@@ -111,6 +161,7 @@ include 'template/header.php';
             <p style="color:#bbb;font-size:0.8rem;"><i class="fas fa-clock"></i> Membre depuis <?= date('d/m/Y', strtotime($user['created_at'])) ?></p>
           </div>
         </div>
+        <?php endif; ?>
 
       </div>
     </div>

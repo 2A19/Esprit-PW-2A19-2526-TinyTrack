@@ -1,13 +1,11 @@
 <?php
 require_once __DIR__ . '/../../../Controller/EnfantController.php';
-require_once __DIR__ . '/../../../config/db.php';
 
 $controller = new EnfantController();
 $errors = [];
 
-$db = Database::getInstance()->getConnection();
-$groupes = $db->query("SELECT id, nom, niveau FROM groupe ORDER BY nom")->fetchAll();
-$parents = $db->query("SELECT id, nom, prenom, email FROM user WHERE role = 'parent' ORDER BY nom")->fetchAll();
+$groupes = $controller->listerGroupes();
+$parents = $controller->listerParents();
 
 if (!isset($_GET['id'])) {
     header('Location: list.php');

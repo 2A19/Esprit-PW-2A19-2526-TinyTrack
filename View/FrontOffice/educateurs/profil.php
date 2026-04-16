@@ -1,37 +1,34 @@
 <?php
 session_start();
-require_once __DIR__ . '/../../../config/db.php';
+require_once __DIR__ . '/../../../Controller/EducateurController.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'educateur') {
     header('Location: /TinyTrack/View/auth/login.php');
     exit;
 }
 
-$db = Database::getInstance()->getConnection();
+$educateurCtrl = new EducateurController();
+$errors = [];
+$successMsg = null;
 
-// Get educateur info
-$stmt = $db->prepare("SELECT * FROM user WHERE id = :id AND role = 'educateur'");
-$stmt->execute([':id' => $_SESSION['user_id']]);
-$educateur = $stmt->fetch();
+// Handle edit form
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_profil'])) {
+    $result = $educateurCtrl->updateProfil($_SESSION['user_id'], $_POST);
+    if ($result['success']) {
+        $successMsg = "Profil mis à jour avec succès !";
+    } else {
+        $errors = $result['errors'];
+    }
+}
 
-// Get assigned group
-$stmt = $db->prepare("SELECT * FROM groupe WHERE educateur_id = :id");
-$stmt->execute([':id' => $_SESSION['user_id']]);
-$groupe = $stmt->fetch();
-
-// Get children in the group
+$educateur = $educateurCtrl->getProfil($_SESSION['user_id']);
+$groupe = $educateurCtrl->getGroupe($_SESSION['user_id']);
 $enfants = [];
 if ($groupe) {
-    $stmt = $db->prepare("
-        SELECT e.*, d.groupe_sanguin, d.allergies, d.medecin_traitant, d.telephone_urgence
-        FROM enfant e
-        LEFT JOIN dossier_medical d ON d.enfant_id = e.id
-        WHERE e.groupe_id = :groupe_id AND e.statut = 'actif'
-        ORDER BY e.nom
-    ");
-    $stmt->execute([':groupe_id' => $groupe['id']]);
-    $enfants = $stmt->fetchAll();
+    $enfants = $educateurCtrl->getEnfantsGroupe($groupe['id']);
 }
+
+$editMode = isset($_GET['edit']);
 
 include '../template/header.php';
 ?>
@@ -55,11 +52,58 @@ include '../template/header.php';
             <?= htmlspecialchars($educateur['prenom'] . ' ' . $educateur['nom']) ?>
           </h3>
           <span style="background:rgba(255,255,255,0.2);color:#fff;padding:0.3rem 1rem;border-radius:20px;font-size:0.8rem;font-weight:700;">
-            <i class="fas fa-chalkboard-teacher"></i> Éducatrice
+            <i class="fas fa-chalkboard-teacher"></i> Éducateur(trice)
           </span>
+          <div style="margin-top:0.8rem;">
+            <?php if (!$editMode): ?>
+              <a href="profil.php?edit=1" style="background:rgba(255,255,255,0.25);color:#fff;padding:0.4rem 1.2rem;border-radius:20px;font-size:0.8rem;font-weight:700;text-decoration:none;"><i class="fas fa-edit"></i> Modifier mon profil</a>
+            <?php else: ?>
+              <a href="profil.php" style="background:rgba(255,255,255,0.25);color:#fff;padding:0.4rem 1.2rem;border-radius:20px;font-size:0.8rem;font-weight:700;text-decoration:none;"><i class="fas fa-times"></i> Annuler</a>
+            <?php endif; ?>
+          </div>
         </div>
 
-        <!-- Profile info -->
+        <?php if ($successMsg): ?>
+          <div style="padding:0.8rem 2rem 0;"><div class="alert alert-success" style="border-radius:14px;border:none;"><i class="fas fa-check-circle"></i> <?= $successMsg ?></div></div>
+        <?php endif; ?>
+        <?php if (!empty($errors)): ?>
+          <div style="padding:0.8rem 2rem 0;"><div class="alert alert-danger" style="border-radius:14px;border:none;"><ul class="mb-0"><?php foreach ($errors as $e): ?><li><?= htmlspecialchars($e) ?></li><?php endforeach; ?></ul></div></div>
+        <?php endif; ?>
+
+        <?php if ($editMode): ?>
+        <!-- EDIT FORM -->
+        <div style="padding:1.5rem 2rem;">
+          <form method="POST" novalidate>
+            <input type="hidden" name="edit_profil" value="1">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label style="font-weight:700;font-size:0.85rem;color:#555;">Nom</label>
+                <input type="text" name="nom" class="form-control" style="border-radius:12px;border:2px solid #E8E8E8;" value="<?= htmlspecialchars($educateur['nom']) ?>" oninput="checkName(this)">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label style="font-weight:700;font-size:0.85rem;color:#555;">Prénom</label>
+                <input type="text" name="prenom" class="form-control" style="border-radius:12px;border:2px solid #E8E8E8;" value="<?= htmlspecialchars($educateur['prenom']) ?>" oninput="checkName(this)">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label style="font-weight:700;font-size:0.85rem;color:#555;">Téléphone</label>
+                <input type="text" name="telephone" class="form-control" style="border-radius:12px;border:2px solid #E8E8E8;" value="<?= htmlspecialchars($educateur['telephone'] ?? '') ?>" placeholder="+216 XX XXX XXX">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label style="font-weight:700;font-size:0.85rem;color:#555;">Spécialité</label>
+                <input type="text" name="specialite" class="form-control" style="border-radius:12px;border:2px solid #E8E8E8;" value="<?= htmlspecialchars($educateur['specialite'] ?? '') ?>">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label style="font-weight:700;font-size:0.85rem;color:#555;">Adresse</label>
+              <input type="text" name="adresse" class="form-control" style="border-radius:12px;border:2px solid #E8E8E8;" value="<?= htmlspecialchars($educateur['adresse'] ?? '') ?>">
+            </div>
+            <button type="submit" class="btn btn-success w-100" style="border-radius:25px;padding:0.7rem;font-weight:700;"><i class="fas fa-save"></i> Enregistrer les modifications</button>
+          </form>
+        </div>
+        <?php else: ?>
+        <!-- Profile info (read only) -->
         <div style="padding:1.5rem 2rem;">
           <div class="row">
 
@@ -129,6 +173,7 @@ include '../template/header.php';
       </div>
     </div>
   </div>
+  <?php endif; ?>
 
   <!-- CHILDREN IN MY GROUP -->
   <?php if ($groupe && !empty($enfants)): ?>
@@ -180,3 +225,12 @@ include '../template/header.php';
 </div>
 
 <?php include '../template/footer.php'; ?>
+<script>
+function checkName(field){
+  var val=field.value.trim();
+  var regex=/^[a-zA-ZÀ-ÿ\s\-]+$/;
+  if(val.length===0){field.style.borderColor='#E8E8E8';return;}
+  if(!regex.test(val)){field.style.borderColor='#EF5350';}
+  else{field.style.borderColor='#4CAF50';}
+}
+</script>

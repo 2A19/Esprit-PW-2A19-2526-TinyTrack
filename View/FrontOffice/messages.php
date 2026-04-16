@@ -1,35 +1,15 @@
 <?php
 session_start();
-require_once __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/../../Controller/MessageController.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: /TinyTrack/View/auth/login.php');
     exit;
 }
 
-$db = Database::getInstance()->getConnection();
-
-// Get messages received by this user
-$stmt = $db->prepare("
-    SELECT m.*, u.prenom AS exp_prenom, u.nom AS exp_nom, u.role AS exp_role
-    FROM message m
-    JOIN user u ON m.expediteur_id = u.id
-    WHERE m.destinataire_id = :uid
-    ORDER BY m.date_envoi DESC
-");
-$stmt->execute([':uid' => $_SESSION['user_id']]);
-$messagesRecus = $stmt->fetchAll();
-
-// Get messages sent by this user
-$stmt = $db->prepare("
-    SELECT m.*, u.prenom AS dest_prenom, u.nom AS dest_nom
-    FROM message m
-    JOIN user u ON m.destinataire_id = u.id
-    WHERE m.expediteur_id = :uid
-    ORDER BY m.date_envoi DESC
-");
-$stmt->execute([':uid' => $_SESSION['user_id']]);
-$messagesEnvoyes = $stmt->fetchAll();
+$messageCtrl = new MessageController();
+$messagesRecus = $messageCtrl->getMessagesRecus($_SESSION['user_id']);
+$messagesEnvoyes = $messageCtrl->getMessagesEnvoyes($_SESSION['user_id']);
 
 include 'template/header.php';
 ?>

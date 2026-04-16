@@ -1,15 +1,12 @@
 <?php
 require_once __DIR__ . '/../../../Controller/EnfantController.php';
-require_once __DIR__ . '/../../../config/db.php';
 
 $controller = new EnfantController();
 $errors = [];
 $success = false;
 
-// Charger les groupes et parents pour les selects
-$db = Database::getInstance()->getConnection();
-$groupes = $db->query("SELECT id, nom, niveau FROM groupe ORDER BY nom")->fetchAll();
-$parents = $db->query("SELECT id, nom, prenom, email FROM user WHERE role = 'parent' ORDER BY nom")->fetchAll();
+$groupes = $controller->listerGroupes();
+$parents = $controller->listerParents();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $result = $controller->ajouterEnfant($_POST);

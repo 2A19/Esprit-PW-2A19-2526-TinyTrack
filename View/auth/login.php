@@ -1,60 +1,24 @@
 <?php
-require_once __DIR__ . '/../../config/db.php';
+// Front Controller: handles all logic before rendering
 session_start();
+require_once __DIR__ . '/../../Controller/AuthController.php';
+
+$authCtrl = new AuthController();
 $errors = [];
-$activeTab = $_POST['role'] ?? 'admin';
+$activeTab = 'admin';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $db = Database::getInstance()->getConnection();
-    $role = $_POST['role'] ?? '';
-    if ($role === 'admin') {
-        $email = trim($_POST['email'] ?? ''); $mdp = $_POST['mot_de_passe'] ?? '';
-        if (empty($email) || empty($mdp)) { $errors[] = "Tous les champs sont obligatoires."; }
-        else {
-            $stmt = $db->prepare("SELECT * FROM user WHERE email = :email AND role = 'admin' AND statut = 'actif'");
-            $stmt->execute([':email' => $email]); $user = $stmt->fetch();
-            if ($user && password_verify($mdp, $user['mot_de_passe'])) {
-                $_SESSION['user_id']=$user['id'];$_SESSION['user_nom']=$user['prenom'].' '.$user['nom'];$_SESSION['user_role']='admin';
-                header('Location: /TinyTrack/View/FrontOffice/profil.php'); exit;
-            } else { $errors[] = "Email ou mot de passe incorrect."; }
-        }
-    } elseif ($role === 'educateur') {
-        $educateur_code = trim($_POST['educateur_id'] ?? ''); $mdp = $_POST['mot_de_passe'] ?? '';
-        if (empty($educateur_code) || empty($mdp)) { $errors[] = "Tous les champs sont obligatoires."; }
-        else {
-            $stmt = $db->prepare("SELECT * FROM user WHERE code_unique = :code AND role = 'educateur' AND statut = 'actif'");
-            $stmt->execute([':code' => $educateur_code]); $user = $stmt->fetch();
-            if (!$user) {
-                // Check if account exists but is pending
-                $stmt2 = $db->prepare("SELECT * FROM user WHERE code_unique = :code AND role = 'educateur' AND statut = 'en_attente'");
-                $stmt2->execute([':code' => $educateur_code]);
-                if ($stmt2->fetch()) { $errors[] = "Votre compte est en attente d'approbation par l'administration."; }
-                else { $errors[] = "Aucun éducateur trouvé avec ce code."; }
-            }
-            elseif (empty($user['mot_de_passe'])) { $errors[] = "Vous n'êtes pas encore inscrit. Cliquez sur 'S'inscrire'."; }
-            elseif (password_verify($mdp, $user['mot_de_passe'])) {
-                $_SESSION['user_id']=$user['id'];$_SESSION['user_nom']=$user['prenom'].' '.$user['nom'];$_SESSION['user_role']='educateur';
-                header('Location: /TinyTrack/View/FrontOffice/educateurs/profil.php'); exit;
-            } else { $errors[] = "Mot de passe incorrect."; }
-        }
-    } elseif ($role === 'parent') {
-        $enfant_code = trim($_POST['enfant_id'] ?? ''); $mdp = $_POST['mot_de_passe'] ?? '';
-        if (empty($enfant_code) || empty($mdp)) { $errors[] = "Tous les champs sont obligatoires."; }
-        else {
-            $stmt = $db->prepare("SELECT u.* FROM user u JOIN enfant e ON e.parent_id = u.id WHERE e.code_unique = :code AND u.role = 'parent' AND u.statut = 'actif'");
-            $stmt->execute([':code' => $enfant_code]); $user = $stmt->fetch();
-            if (!$user) {
-                // Check if parent account is pending (search by email since they don't have enfant code yet)
-                $errors[] = "Aucun compte trouvé. Vérifiez votre code ou attendez l'approbation de l'admin.";
-            }
-            elseif (empty($user['mot_de_passe'])) { $errors[] = "Vous n'êtes pas encore inscrit. Cliquez sur 'S'inscrire'."; }
-            elseif (password_verify($mdp, $user['mot_de_passe'])) {
-                $_SESSION['user_id']=$user['id'];$_SESSION['user_nom']=$user['prenom'].' '.$user['nom'];$_SESSION['user_role']='parent';
-                header('Location: /TinyTrack/View/FrontOffice/enfants/list.php'); exit;
-            } else { $errors[] = "Mot de passe incorrect."; }
-        }
+    $response = $authCtrl->handleLogin($_POST);
+    $activeTab = $response['activeTab'];
+
+    if ($response['result']['success']) {
+        header('Location: ' . $response['result']['redirect']);
+        exit;
+    } else {
+        $errors[] = $response['result']['error'];
     }
 }
+// View starts here — only display, no logic
 ?>
 <!DOCTYPE html>
 <html lang="fr">

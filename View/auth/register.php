@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/../../Controller/AuthController.php';
 
 $activeTab = $_POST['role'] ?? ($_GET['tab'] ?? 'educateur');
 $errors = [];
@@ -7,83 +7,14 @@ $success = null;
 $old = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $db = Database::getInstance()->getConnection();
     $old = $_POST;
-    $role = $_POST['role'] ?? '';
-    $nom = trim($_POST['nom'] ?? '');
-    $prenom = trim($_POST['prenom'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $telephone = trim($_POST['telephone'] ?? '');
-    $mot_de_passe = $_POST['mot_de_passe'] ?? '';
-    $confirm_mdp = $_POST['confirm_mdp'] ?? '';
+    $authCtrl = new AuthController();
+    $result = $authCtrl->register($_POST);
 
-    // Validation
-    $lettresRegex = '/^[a-zA-ZÀ-ÿ\s\-]+$/';
-    if (empty($nom)) $errors[] = "Le nom est obligatoire.";
-    elseif (!preg_match($lettresRegex, $nom)) $errors[] = "Le nom ne doit contenir que des lettres.";
-    if (empty($prenom)) $errors[] = "Le prénom est obligatoire.";
-    elseif (!preg_match($lettresRegex, $prenom)) $errors[] = "Le prénom ne doit contenir que des lettres.";
-    if (empty($email)) $errors[] = "L'email est obligatoire.";
-    elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "L'email n'est pas valide.";
-    else {
-        $stmt = $db->prepare("SELECT COUNT(*) FROM user WHERE email = :email");
-        $stmt->execute([':email' => $email]);
-        if ($stmt->fetchColumn() > 0) $errors[] = "Cet email est déjà utilisé.";
-    }
-    if (empty($mot_de_passe)) $errors[] = "Le mot de passe est obligatoire.";
-    elseif (strlen($mot_de_passe) < 6) $errors[] = "Le mot de passe doit contenir au moins 6 caractères.";
-    if ($mot_de_passe !== $confirm_mdp) $errors[] = "Les mots de passe ne correspondent pas.";
-    if (!in_array($role, ['educateur', 'parent'])) $errors[] = "Rôle invalide.";
-
-    // Telephone: must be 8 digits
-    $telClean = preg_replace('/\s/', '', $telephone);
-    if (!empty($telClean) && !preg_match('/^\d{8}$/', $telClean)) {
-        $errors[] = "Le numéro de téléphone doit contenir exactement 8 chiffres.";
-    }
-    if (!empty($telClean)) $telephone = '+216 ' . $telClean;
-
-    // Parent: validate enfant info
-    if ($role === 'parent') {
-        $enfant_nom = trim($_POST['enfant_nom'] ?? '');
-        $enfant_prenom = trim($_POST['enfant_prenom'] ?? '');
-        $enfant_dob = trim($_POST['enfant_dob'] ?? '');
-        if (empty($enfant_nom)) $errors[] = "Le nom de l'enfant est obligatoire.";
-        elseif (!preg_match($lettresRegex, $enfant_nom)) $errors[] = "Le nom de l'enfant ne doit contenir que des lettres.";
-        if (empty($enfant_prenom)) $errors[] = "Le prénom de l'enfant est obligatoire.";
-        elseif (!preg_match($lettresRegex, $enfant_prenom)) $errors[] = "Le prénom de l'enfant ne doit contenir que des lettres.";
-        if (empty($enfant_dob)) $errors[] = "La date de naissance de l'enfant est obligatoire.";
-        elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $enfant_dob)) $errors[] = "Format date invalide (AAAA-MM-JJ).";
-        else {
-            $dob = new DateTime($enfant_dob);
-            $now = new DateTime();
-            $age = $now->diff($dob)->y;
-            if ($dob > $now) $errors[] = "La date de naissance ne peut pas être dans le futur.";
-            elseif ($age > 6) $errors[] = "L'enfant ne doit pas dépasser 6 ans (âge: {$age} ans).";
-        }
-    }
-
-    if (empty($errors)) {
-        $hash = password_hash($mot_de_passe, PASSWORD_BCRYPT);
-
-        // Generate unique code
-        $prefix = ($role === 'educateur') ? 'TT-1' : 'TT-2';
-        $stmt = $db->query("SELECT MAX(CAST(SUBSTRING(code_unique, 5) AS UNSIGNED)) as max_num FROM user WHERE code_unique LIKE '{$prefix}%'");
-        $maxNum = $stmt->fetch()['max_num'] ?? 0;
-        $code = $prefix . str_pad($maxNum + 1, 3, '0', STR_PAD_LEFT);
-
-        $stmt = $db->prepare("INSERT INTO user (code_unique, nom, prenom, email, mot_de_passe, mdp_temp, role, telephone, statut) VALUES (:code, :nom, :prenom, :email, :mdp, :mdp_temp, :role, :tel, 'en_attente')");
-        $stmt->execute([
-            ':code' => $code,
-            ':nom' => $nom,
-            ':prenom' => $prenom,
-            ':mdp_temp' => $mot_de_passe,
-            ':email' => $email,
-            ':mdp' => $hash,
-            ':role' => $role,
-            ':tel' => !empty($telephone) ? $telephone : null
-        ]);
-
-        $success = $role;
+    if ($result['success']) {
+        $success = $result['role'];
+    } else {
+        $errors = $result['errors'];
     }
 }
 ?>
@@ -237,29 +168,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </div>
           <div id="tel_err_par" style="font-size:0.72rem;font-weight:700;margin-top:0.2rem;"></div>
         </div>
-        <div style="padding:0.5rem 0.8rem;background:linear-gradient(135deg,#E3F2FD,#E8EAF6);border-radius:10px;margin-bottom:0.8rem;font-size:0.78rem;color:#5B7FA5;border:1px solid #BBDEFB;"><i class="fas fa-child"></i> Informations de l'enfant</div>
-        <div class="row">
-          <div class="col-6"><div class="form-group-r"><label><i class="fas fa-child" style="color:#5B9BD5;"></i> Nom de l'enfant</label><input type="text" name="enfant_nom" class="form-control" placeholder="Nom de l'enfant" oninput="checkName(this)" value="<?= htmlspecialchars($old['enfant_nom'] ?? '') ?>"></div></div>
-          <div class="col-6"><div class="form-group-r"><label><i class="fas fa-child" style="color:#5B9BD5;"></i> Prénom de l'enfant</label><input type="text" name="enfant_prenom" class="form-control" placeholder="Prénom de l'enfant" oninput="checkName(this)" value="<?= htmlspecialchars($old['enfant_prenom'] ?? '') ?>"></div></div>
+        <div style="padding:0.5rem 0.8rem;background:linear-gradient(135deg,#E3F2FD,#E8EAF6);border-radius:10px;margin-bottom:0.8rem;font-size:0.78rem;color:#5B7FA5;border:1px solid #BBDEFB;display:flex;justify-content:space-between;align-items:center;">
+          <span><i class="fas fa-child"></i> Enfant(s) à inscrire</span>
+          <button type="button" onclick="addEnfant()" style="background:#5B9BD5;color:#fff;border:none;border-radius:15px;padding:0.2rem 0.7rem;font-size:0.7rem;font-weight:700;cursor:pointer;"><i class="fas fa-plus"></i> Ajouter un enfant</button>
         </div>
-        <div class="form-group-r">
-          <label><i class="fas fa-birthday-cake" style="color:#FF8FAB;"></i> Date de naissance de l'enfant</label>
-          <div style="display:flex;gap:0.4rem;">
-            <select name="enfant_jour" id="enfant_jour" class="form-control" style="flex:1;text-align:center;" onchange="checkAgeDrop()">
-              <option value="">Jour</option>
-              <?php for($d=1;$d<=31;$d++): ?><option value="<?= $d ?>" <?= (($old['enfant_jour']??'')==$d)?'selected':'' ?>><?= str_pad($d,2,'0',STR_PAD_LEFT) ?></option><?php endfor; ?>
-            </select>
-            <select name="enfant_mois" id="enfant_mois" class="form-control" style="flex:1.5;" onchange="checkAgeDrop()">
-              <option value="">Mois</option>
-              <?php $mois=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']; foreach($mois as $i=>$m): ?><option value="<?= $i+1 ?>" <?= (($old['enfant_mois']??'')==$i+1)?'selected':'' ?>><?= $m ?></option><?php endforeach; ?>
-            </select>
-            <select name="enfant_annee" id="enfant_annee" class="form-control" style="flex:1;text-align:center;" onchange="checkAgeDrop()">
-              <option value="">Année</option>
-              <?php $currentYear=date('Y'); for($y=$currentYear;$y>=$currentYear-7;$y--): ?><option value="<?= $y ?>" <?= (($old['enfant_annee']??'')==$y)?'selected':'' ?>><?= $y ?></option><?php endfor; ?>
-            </select>
+        <div id="enfants-container">
+          <div class="enfant-block" style="background:#f8f9fa;border-radius:12px;padding:0.8rem;margin-bottom:0.6rem;border:1px solid #eee;position:relative;">
+            <div style="font-size:0.75rem;font-weight:700;color:#5B9BD5;margin-bottom:0.5rem;"><i class="fas fa-baby"></i> Enfant 1</div>
+            <div class="row">
+              <div class="col-3"><div class="form-group-r"><input type="text" name="enfants[0][nom]" class="form-control" placeholder="Nom" oninput="checkName(this)" style="font-size:0.85rem;padding:0.5rem 0.7rem;"></div></div>
+              <div class="col-3"><div class="form-group-r"><input type="text" name="enfants[0][prenom]" class="form-control" placeholder="Prénom" oninput="checkName(this)" style="font-size:0.85rem;padding:0.5rem 0.7rem;"></div></div>
+              <div class="col-2"><div class="form-group-r"><select name="enfants[0][sexe]" class="form-control" style="font-size:0.8rem;padding:0.5rem 0.3rem;"><option value="M">&#x1F466; Garçon</option><option value="F">&#x1F467; Fille</option></select></div></div>
+              <div class="col-4"><div class="form-group-r">
+                <div style="display:flex;gap:0.2rem;">
+                  <select name="enfants[0][jour]" class="form-control" style="font-size:0.8rem;padding:0.4rem;">
+                    <option value="">Jour</option>
+                    <?php for($d=1;$d<=31;$d++): ?><option value="<?= $d ?>"><?= str_pad($d,2,'0',STR_PAD_LEFT) ?></option><?php endfor; ?>
+                  </select>
+                  <select name="enfants[0][mois]" class="form-control" style="font-size:0.8rem;padding:0.4rem;">
+                    <option value="">Mois</option>
+                    <?php for($m=1;$m<=12;$m++): ?><option value="<?= $m ?>"><?= str_pad($m,2,'0',STR_PAD_LEFT) ?></option><?php endfor; ?>
+                  </select>
+                  <select name="enfants[0][annee]" class="form-control" style="font-size:0.8rem;padding:0.4rem;">
+                    <option value="">Année</option>
+                    <?php for($y=date('Y');$y>=date('Y')-7;$y--): ?><option value="<?= $y ?>"><?= $y ?></option><?php endfor; ?>
+                  </select>
+                </div>
+              </div></div>
+            </div>
           </div>
-          <input type="hidden" name="enfant_dob" id="enfant_dob_par">
-          <div id="age_err_par" style="font-size:0.72rem;font-weight:700;margin-top:0.3rem;"></div>
         </div>
         <div class="form-group-r">
           <label><i class="fas fa-lock" style="color:#FFA726;"></i> Mot de passe</label>
@@ -452,9 +389,84 @@ function checkTel(type){
   }
 }
 
-// checkAge is now handled by checkAgeDrop()
+// Add enfant dynamically
+var enfantCount = 1;
+function addEnfant() {
+  enfantCount++;
+  var container = document.getElementById('enfants-container');
+  var years = '';
+  var currentYear = new Date().getFullYear();
+  for (var y = currentYear; y >= currentYear - 7; y--) { years += '<option value="' + y + '">' + y + '</option>'; }
+  var jours = '';
+  for (var d = 1; d <= 31; d++) { jours += '<option value="' + d + '">' + String(d).padStart(2, '0') + '</option>'; }
+  var mois = '';
+  for (var m = 1; m <= 12; m++) { mois += '<option value="' + m + '">' + String(m).padStart(2, '0') + '</option>'; }
 
-function validerForm(){return true;}
+  var idx = enfantCount - 1;
+  var html = '<div class="enfant-block" style="background:#f8f9fa;border-radius:12px;padding:0.8rem;margin-bottom:0.6rem;border:1px solid #eee;position:relative;animation:fi 0.3s ease;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">'
+    + '<span style="font-size:0.75rem;font-weight:700;color:#5B9BD5;"><i class="fas fa-baby"></i> Enfant ' + enfantCount + '</span>'
+    + '<button type="button" onclick="removeEnfant(this)" style="background:#FFEBEE;color:#C62828;border:none;border-radius:50%;width:22px;height:22px;font-size:0.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fas fa-times"></i></button>'
+    + '</div>'
+    + '<div class="row">'
+    + '<div class="col-3"><div class="form-group-r"><input type="text" name="enfants[' + idx + '][nom]" class="form-control" placeholder="Nom" oninput="checkName(this)" style="font-size:0.85rem;padding:0.5rem 0.7rem;"></div></div>'
+    + '<div class="col-3"><div class="form-group-r"><input type="text" name="enfants[' + idx + '][prenom]" class="form-control" placeholder="Prénom" oninput="checkName(this)" style="font-size:0.85rem;padding:0.5rem 0.7rem;"></div></div>'
+    + '<div class="col-2"><div class="form-group-r"><select name="enfants[' + idx + '][sexe]" class="form-control" style="font-size:0.8rem;padding:0.5rem 0.3rem;"><option value="M">&#x1F466; Garçon</option><option value="F">&#x1F467; Fille</option></select></div></div>'
+    + '<div class="col-4"><div class="form-group-r"><div style="display:flex;gap:0.2rem;">'
+    + '<select name="enfants[' + idx + '][jour]" class="form-control" style="font-size:0.8rem;padding:0.4rem;"><option value="">Jour</option>' + jours + '</select>'
+    + '<select name="enfants[' + idx + '][mois]" class="form-control" style="font-size:0.8rem;padding:0.4rem;"><option value="">Mois</option>' + mois + '</select>'
+    + '<select name="enfants[' + idx + '][annee]" class="form-control" style="font-size:0.8rem;padding:0.4rem;"><option value="">Année</option>' + years + '</select>'
+    + '</div></div></div></div></div>';
+
+  container.insertAdjacentHTML('beforeend', html);
+}
+
+function removeEnfant(btn) {
+  btn.closest('.enfant-block').remove();
+  // Re-number labels
+  var blocks = document.querySelectorAll('.enfant-block');
+  blocks.forEach(function(b, i) {
+    var label = b.querySelector('span');
+    if (label) label.innerHTML = '<i class="fas fa-baby"></i> Enfant ' + (i + 1);
+  });
+  enfantCount = blocks.length;
+}
+
+function validerForm(){
+  // Check all enfant dates are not in the future
+  var blocks = document.querySelectorAll('#enfants-container .enfant-block');
+  if (blocks.length === 0) return true;
+
+  var today = new Date();
+  today.setHours(0,0,0,0);
+
+  for (var i = 0; i < blocks.length; i++) {
+    var selects = blocks[i].querySelectorAll('select');
+    var jour = null, mois = null, annee = null;
+    selects.forEach(function(s) {
+      var name = s.getAttribute('name') || '';
+      if (name.indexOf('[jour]') !== -1) jour = s.value;
+      if (name.indexOf('[mois]') !== -1) mois = s.value;
+      if (name.indexOf('[annee]') !== -1) annee = s.value;
+    });
+
+    if (jour && mois && annee) {
+      var dob = new Date(annee, mois - 1, jour);
+      if (dob > today) {
+        alert('Enfant ' + (i+1) + ' : la date de naissance ne peut pas être dans le futur.');
+        return false;
+      }
+      var age = today.getFullYear() - dob.getFullYear();
+      var m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+      if (age > 6) {
+        alert('Enfant ' + (i+1) + ' : ne doit pas dépasser 6 ans (âge: ' + age + ' ans).');
+        return false;
+      }
+    }
+  }
+  return true;
+}
 </script>
 </body>
 </html>

@@ -1,7 +1,68 @@
 <?php
 require_once __DIR__ . '/../Model/Enfant.php';
+require_once __DIR__ . '/../config/db.php';
 
 class EnfantController {
+
+    /**
+     * Get a groupe by its ID.
+     */
+    public function getGroupeById($id) {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT * FROM groupe WHERE id = :id");
+        $stmt->execute([':id' => (int)$id]);
+        return $stmt->fetch();
+    }
+
+    /**
+     * Get the educateur assigned to a groupe.
+     */
+    public function getEducateurByGroupeId($groupeId) {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("
+            SELECT u.prenom, u.nom, u.telephone
+            FROM user u
+            JOIN groupe g ON g.educateur_id = u.id
+            WHERE g.id = :gid AND u.role = 'educateur'
+        ");
+        $stmt->execute([':gid' => (int)$groupeId]);
+        return $stmt->fetch();
+    }
+
+
+    /**
+     * List all groupes for select dropdowns.
+     */
+    public function listerGroupes() {
+        $db = Database::getInstance()->getConnection();
+        return $db->query("SELECT id, nom, niveau FROM groupe ORDER BY nom")->fetchAll();
+    }
+
+    /**
+     * List all parents for select dropdowns.
+     */
+    public function listerParents() {
+        $db = Database::getInstance()->getConnection();
+        return $db->query("SELECT id, nom, prenom, email FROM user WHERE role = 'parent' ORDER BY nom")->fetchAll();
+    }
+
+    /**
+     * Archive an enfant (soft delete).
+     */
+    public function archiverEnfant($id) {
+        $db = Database::getInstance()->getConnection();
+        $db->prepare("UPDATE enfant SET statut = 'archive' WHERE id = :id")->execute([':id' => (int)$id]);
+        return true;
+    }
+
+    /**
+     * Reactivate an enfant.
+     */
+    public function activerEnfant($id) {
+        $db = Database::getInstance()->getConnection();
+        $db->prepare("UPDATE enfant SET statut = 'actif' WHERE id = :id")->execute([':id' => (int)$id]);
+        return true;
+    }
 
     // List all enfants
     public function listerEnfants() {
@@ -71,12 +132,6 @@ class EnfantController {
     public function supprimerEnfant($id) {
         $enfant = new Enfant();
         return $enfant->supprimer($id);
-    }
-
-    // Archive enfant
-    public function archiverEnfant($id) {
-        $enfant = new Enfant();
-        return $enfant->archiver($id);
     }
 
     // Search

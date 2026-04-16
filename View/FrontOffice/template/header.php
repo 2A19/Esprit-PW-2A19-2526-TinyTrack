@@ -332,13 +332,18 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarKider">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/enfants/list.php"><i class="fas fa-child"></i> Enfants</a></li>
         <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
-        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/educateurs/list.php"><i class="fas fa-chalkboard-teacher"></i> Éducateurs</a></li>
-        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/approbation.php" style="color:#FFA726;"><i class="fas fa-user-check"></i> Approbation</a></li>
-        <?php endif; ?>
+        <!-- Admin: juste Dashboard + Profil -->
+        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/dashboard.php" style="color:#4CAF50;font-weight:800;"><i class="fas fa-th-large"></i> Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/profil.php"><i class="fas fa-user-circle"></i> Mon profil</a></li>
+        <?php else: ?>
+        <!-- Parent/Éducateur: menu complet -->
+        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/enfants/list.php"><i class="fas fa-child"></i> Enfants</a></li>
+        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/evenements/list.php"><i class="fas fa-calendar-alt"></i> Événements</a></li>
+        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/rapports/listRapportsParent.php"><i class="fas fa-book"></i> Rapports</a></li>
         <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/messages.php"><i class="fas fa-envelope"></i> Messages</a></li>
         <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/profil.php"><i class="fas fa-user-circle"></i> Mon profil</a></li>
+        <?php endif; ?>
         <li class="nav-item ms-1">
           <a class="nav-link" href="/TinyTrack/View/auth/logout.php" style="background:#dc3545;color:#fff;border-radius:25px;padding:0.4rem 1rem;" onclick="return confirm('Se déconnecter ?')">
             <i class="fas fa-sign-out-alt"></i> Déconnexion

@@ -1,98 +1,33 @@
 <?php
 session_start();
-require_once __DIR__ . '/../../config/db.php';
-require_once __DIR__ . '/../../config/mailer.php';
+require_once __DIR__ . '/../../Controller/ApprobationController.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: /TinyTrack/View/auth/login.php');
     exit;
 }
 
-$db = Database::getInstance()->getConnection();
+$approbationCtrl = new ApprobationController();
 
 // Approve account
 if (isset($_GET['approve']) && is_numeric($_GET['approve'])) {
-    $id = (int)$_GET['approve'];
-    $db->prepare("UPDATE user SET statut = 'actif' WHERE id = :id AND statut = 'en_attente'")->execute([':id' => $id]);
-
-    // Get user info
-    $stmt = $db->prepare("SELECT * FROM user WHERE id = :id");
-    $stmt->execute([':id' => $id]);
-    $user = $stmt->fetch();
-
-    if ($user) {
-        // Send email with credentials
-        $roleLabel = ($user['role'] === 'educateur') ? 'Éducateur' : 'Parent';
-        $code = $user['code_unique'];
-        $subject = '=?UTF-8?B?' . base64_encode('TinyTrack - Compte approuvé !') . '?=';
-
-        $body = '<html><body style="font-family:Arial,sans-serif;margin:0;padding:0;">';
-        $body .= '<div style="max-width:500px;margin:20px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">';
-        $body .= '<div style="background:linear-gradient(135deg,#4CAF50,#81C784);padding:24px;text-align:center;">';
-        $body .= '<h1 style="color:#fff;font-size:24px;margin:0;">TinyTrack</h1>';
-        $body .= '<p style="color:rgba(255,255,255,0.85);margin:4px 0 0;font-size:14px;">Chaque petit pas compte</p>';
-        $body .= '</div>';
-        $body .= '<div style="padding:24px;">';
-        $body .= '<h2 style="color:#2D3436;font-size:18px;">Bonjour ' . htmlspecialchars($user['prenom']) . ' !</h2>';
-        $body .= '<p style="color:#555;font-size:15px;">Votre compte <strong>' . $roleLabel . '</strong> a ete approuve par l\'administration.</p>';
-        $body .= '<p style="color:#555;font-size:15px;">Voici vos coordonnees de connexion :</p>';
-        $body .= '<div style="background:#E8F5E9;border-radius:12px;padding:16px;margin:16px 0;">';
-        $body .= '<p style="margin:0 0 8px;font-size:14px;color:#555;"><strong>Identifiant :</strong></p>';
-        $body .= '<div style="font-family:Courier New,monospace;font-size:22px;font-weight:bold;color:#2E7D32;letter-spacing:2px;">' . htmlspecialchars($code) . '</div>';
-        $body .= '</div>';
-        $body .= '<div style="background:#FFF3E0;border-radius:12px;padding:16px;margin:12px 0;">';
-        $body .= '<p style="margin:0 0 8px;font-size:14px;color:#555;"><strong>Mot de passe :</strong></p>';
-        $body .= '<div style="font-family:Courier New,monospace;font-size:20px;font-weight:bold;color:#E65100;letter-spacing:2px;">' . htmlspecialchars($user['mdp_temp'] ?? '(choisi à l\'inscription)') . '</div>';
-        $body .= '</div>';
-        $body .= '<p style="color:#555;font-size:14px;">Connectez-vous sur TinyTrack avec ces coordonnees.</p>';
-        $body .= '</div>';
-        $body .= '<div style="background:#f8f9fa;padding:12px;text-align:center;font-size:12px;color:#888;">TinyTrack 2026 - ESPRIT 2A19</div>';
-        $body .= '</div></body></html>';
-
-        // Send via SMTP
-        $smtp_user = 'eya.belhajmabrrouk@gmail.com';
-        $smtp_pass = 'owclpimeecveksjf';
-
-        $ctx = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
-        $socket = @stream_socket_client('ssl://smtp.gmail.com:465', $errno, $errstr, 10, STREAM_CLIENT_CONNECT, $ctx);
-        if ($socket) {
-            fgets($socket, 515);
-            fputs($socket, "EHLO localhost\r\n");
-            while ($line = fgets($socket, 515)) { if (substr($line, 3, 1) == ' ') break; }
-            fputs($socket, "AUTH LOGIN\r\n"); fgets($socket, 515);
-            fputs($socket, base64_encode($smtp_user) . "\r\n"); fgets($socket, 515);
-            fputs($socket, base64_encode($smtp_pass) . "\r\n"); fgets($socket, 515);
-            fputs($socket, "MAIL FROM:<{$smtp_user}>\r\n"); fgets($socket, 515);
-            fputs($socket, "RCPT TO:<{$user['email']}>\r\n"); fgets($socket, 515);
-            fputs($socket, "DATA\r\n"); fgets($socket, 515);
-            $msg = "From: TinyTrack <{$smtp_user}>\r\nTo: {$user['email']}\r\nSubject: {$subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=utf-8\r\n\r\n{$body}\r\n.\r\n";
-            fputs($socket, $msg); fgets($socket, 515);
-            fputs($socket, "QUIT\r\n"); fclose($socket);
-        }
-    }
-
-    // Clear temp password for security
-    $db->prepare("UPDATE user SET mdp_temp = NULL WHERE id = :id")->execute([':id' => $id]);
-
+    $approbationCtrl->approuver($_GET['approve']);
     header('Location: approbation.php?msg=approved');
     exit;
 }
 
 // Reject account
 if (isset($_GET['reject']) && is_numeric($_GET['reject'])) {
-    $id = (int)$_GET['reject'];
-    $db->prepare("DELETE FROM user WHERE id = :id AND statut = 'en_attente'")->execute([':id' => $id]);
+    $approbationCtrl->rejeter($_GET['reject']);
     header('Location: approbation.php?msg=rejected');
     exit;
 }
 
 // Get pending accounts
-$stmt = $db->query("SELECT * FROM user WHERE statut = 'en_attente' ORDER BY created_at DESC");
-$pendingUsers = $stmt->fetchAll();
+$pendingUsers = $approbationCtrl->listerEnAttente();
 
 // Get recently approved
-$stmt = $db->query("SELECT * FROM user WHERE statut = 'actif' AND role != 'admin' ORDER BY created_at DESC LIMIT 10");
-$activeUsers = $stmt->fetchAll();
+$activeUsers = $approbationCtrl->listerActifs();
 
 include 'template/header.php';
 ?>

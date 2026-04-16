@@ -1,6 +1,5 @@
 <?php
 session_start();
-require_once __DIR__ . '/../../../config/db.php';
 require_once __DIR__ . '/../../../Controller/EnfantController.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -8,8 +7,21 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$db = Database::getInstance()->getConnection();
 $enfantCtrl = new EnfantController();
+
+// Handle archive/activate (admin only)
+if ($_SESSION['user_role'] === 'admin') {
+    if (isset($_GET['archive']) && is_numeric($_GET['archive'])) {
+        $enfantCtrl->archiverEnfant((int)$_GET['archive']);
+        header('Location: list.php?msg=archived');
+        exit;
+    }
+    if (isset($_GET['activate']) && is_numeric($_GET['activate'])) {
+        $enfantCtrl->activerEnfant((int)$_GET['activate']);
+        header('Location: list.php?msg=activated');
+        exit;
+    }
+}
 
 if ($_SESSION['user_role'] === 'parent') {
     $enfants = $enfantCtrl->listerEnfantsParParent($_SESSION['user_id']);
@@ -24,6 +36,16 @@ include '../template/header.php';
 
 <div class="container py-5" style="position:relative; z-index:1;">
 
+  <?php if (isset($_GET['msg'])): ?>
+    <div class="row justify-content-center mb-3"><div class="col-md-8">
+      <?php if ($_GET['msg'] === 'archived'): ?>
+        <div class="alert alert-warning" style="border-radius:14px;border:none;text-align:center;"><i class="fas fa-archive"></i> Enfant archivé.</div>
+      <?php elseif ($_GET['msg'] === 'activated'): ?>
+        <div class="alert alert-success" style="border-radius:14px;border:none;text-align:center;"><i class="fas fa-check-circle"></i> Enfant réactivé.</div>
+      <?php endif; ?>
+    </div></div>
+  <?php endif; ?>
+
   <div class="text-center mb-5">
     <img src="/TinyTrack/assets/images/logo.png" alt="TinyTrack" style="height:70px; margin-bottom:15px;">
     <h2 class="section-title"><i class="fas fa-child"></i> Enfants</h2>
@@ -37,17 +59,13 @@ include '../template/header.php';
       // Get groupe info
       $groupe = null;
       if ($e['groupe_id']) {
-          $stmt = $db->prepare("SELECT * FROM groupe WHERE id = :id");
-          $stmt->execute([':id' => $e['groupe_id']]);
-          $groupe = $stmt->fetch();
+          $groupe = $enfantCtrl->getGroupeById($e['groupe_id']);
       }
 
       // Get educateur info
       $educateur = null;
-      if ($groupe && $groupe['educateur_id']) {
-          $stmt = $db->prepare("SELECT prenom, nom, telephone FROM user WHERE id = :id AND role = 'educateur'");
-          $stmt->execute([':id' => $groupe['educateur_id']]);
-          $educateur = $stmt->fetch();
+      if ($e['groupe_id']) {
+          $educateur = $enfantCtrl->getEducateurByGroupeId($e['groupe_id']);
       }
     ?>
 
@@ -103,6 +121,21 @@ include '../template/header.php';
               </div>
             </div>
           </div>
+
+          <?php if ($_SESSION['user_role'] === 'admin'): ?>
+          <div style="padding:0 2rem 1rem;text-align:center;">
+            <?php if ($e['statut'] === 'actif'): ?>
+              <a href="list.php?archive=<?= $e['id'] ?>" onclick="return confirm('Archiver cet enfant ?')" class="btn btn-sm" style="background:#FFEBEE;color:#C62828;border-radius:20px;font-weight:700;font-size:0.8rem;">
+                <i class="fas fa-archive"></i> Archiver
+              </a>
+            <?php else: ?>
+              <a href="list.php?activate=<?= $e['id'] ?>" onclick="return confirm('Réactiver cet enfant ?')" class="btn btn-sm" style="background:#E8F5E9;color:#2E7D32;border-radius:20px;font-weight:700;font-size:0.8rem;">
+                <i class="fas fa-check-circle"></i> Réactiver
+              </a>
+              <span style="background:#FFEBEE;color:#C62828;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.7rem;font-weight:700;margin-left:0.3rem;"><i class="fas fa-ban"></i> Archivé</span>
+            <?php endif; ?>
+          </div>
+          <?php endif; ?>
 
         </div>
       </div>

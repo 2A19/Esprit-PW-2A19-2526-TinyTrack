@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/../../../config/db.php';
+require_once __DIR__ . '/../../../Controller/EducateurController.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: /TinyTrack/View/auth/login.php');
@@ -16,24 +16,36 @@ if ($_SESSION['user_role'] === 'parent') {
     exit;
 }
 
-$db = Database::getInstance()->getConnection();
+$educateurCtrl = new EducateurController();
 
-// Get all educateurs with their group
-$stmt = $db->query("
-    SELECT u.id, u.nom, u.prenom, u.email, u.telephone, u.statut,
-           g.nom AS groupe_nom, g.niveau AS groupe_niveau,
-           (SELECT COUNT(*) FROM enfant e WHERE e.groupe_id = g.id AND e.statut = 'actif') AS nb_enfants
-    FROM user u
-    LEFT JOIN groupe g ON g.educateur_id = u.id
-    WHERE u.role = 'educateur'
-    ORDER BY u.nom
-");
-$educateurs = $stmt->fetchAll();
+// Handle archive/activate
+if (isset($_GET['archive']) && is_numeric($_GET['archive']) && $_SESSION['user_role'] === 'admin') {
+    $educateurCtrl->archiverCompte((int)$_GET['archive']);
+    header('Location: list.php?msg=archived');
+    exit;
+}
+if (isset($_GET['activate']) && is_numeric($_GET['activate']) && $_SESSION['user_role'] === 'admin') {
+    $educateurCtrl->activerCompte((int)$_GET['activate']);
+    header('Location: list.php?msg=activated');
+    exit;
+}
+
+$educateurs = $educateurCtrl->listerEducateurs();
 
 include '../template/header.php';
 ?>
 
 <div class="container py-5" style="position:relative; z-index:1;">
+
+  <?php if (isset($_GET['msg'])): ?>
+    <div class="row justify-content-center mb-3"><div class="col-md-8">
+      <?php if ($_GET['msg'] === 'archived'): ?>
+        <div class="alert alert-warning" style="border-radius:14px;border:none;text-align:center;"><i class="fas fa-archive"></i> Compte archivé — l'accès est coupé.</div>
+      <?php elseif ($_GET['msg'] === 'activated'): ?>
+        <div class="alert alert-success" style="border-radius:14px;border:none;text-align:center;"><i class="fas fa-check-circle"></i> Compte réactivé.</div>
+      <?php endif; ?>
+    </div></div>
+  <?php endif; ?>
 
   <div class="text-center mb-5">
     <img src="/TinyTrack/assets/images/logo.png" alt="TinyTrack" style="height:70px; margin-bottom:15px;">
@@ -77,12 +89,23 @@ include '../template/header.php';
             <p class="mb-0"><i class="fas fa-child" style="color:#FF8FAB;"></i> <strong>Enfants :</strong> <?= $edu['nb_enfants'] ?? 0 ?> enfant(s)</p>
           </div>
 
-          <!-- ID badge -->
-          <div style="margin-top:0.8rem;">
+          <!-- Admin actions -->
+          <?php if ($_SESSION['user_role'] === 'admin'): ?>
+          <div style="margin-top:0.8rem;display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
             <span style="background:#E3F2FD;color:#1565C0;padding:0.3rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:700;">
               <i class="fas fa-id-badge"></i> ID : <?= $edu['id'] ?>
             </span>
+            <?php if ($edu['statut'] === 'actif'): ?>
+              <a href="list.php?archive=<?= $edu['id'] ?>" onclick="return confirm('Archiver ce compte ? L\'éducateur ne pourra plus se connecter.')" style="background:#FFEBEE;color:#C62828;padding:0.3rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:700;text-decoration:none;">
+                <i class="fas fa-archive"></i> Archiver
+              </a>
+            <?php else: ?>
+              <a href="list.php?activate=<?= $edu['id'] ?>" onclick="return confirm('Réactiver ce compte ?')" style="background:#E8F5E9;color:#2E7D32;padding:0.3rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:700;text-decoration:none;">
+                <i class="fas fa-check-circle"></i> Réactiver
+              </a>
+            <?php endif; ?>
           </div>
+          <?php endif; ?>
 
         </div>
       </div>
