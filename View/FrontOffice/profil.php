@@ -156,6 +156,34 @@ include 'template/header.php';
             </div>
           <?php endif; ?>
 
+          <!-- Reconnaissance faciale -->
+          <div class="medical-box mt-3" id="face-card" style="background:linear-gradient(135deg,#F0F9FF,#E0F4F1);border:1px solid #B2DFDB;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;">
+              <div>
+                <p style="font-weight:800;color:#00796B;margin-bottom:0.3rem;"><i class="fas fa-camera"></i> Connexion par reconnaissance faciale</p>
+                <p id="face-status" style="font-size:0.85rem;color:#555;margin-bottom:0;">
+                  <?php if (!empty($user['face_descriptor'])): ?>
+                    <i class="fas fa-check-circle" style="color:#4CAF50"></i>
+                    <strong>Activée</strong> — depuis le <?= date('d/m/Y H:i', strtotime($user['face_enrolled_at'])) ?>
+                  <?php else: ?>
+                    <i class="fas fa-info-circle" style="color:#FFA726"></i>
+                    Non activée. Configurez-la pour vous connecter sans mot de passe.
+                  <?php endif; ?>
+                </p>
+              </div>
+              <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                <button type="button" onclick="openFaceEnroll()" class="btn-chunky btn-chunky-teal" style="padding:0.5rem 1rem;font-size:0.82rem;">
+                  <i class="fas fa-camera"></i> <?= !empty($user['face_descriptor']) ? 'Re-enregistrer' : 'Activer' ?>
+                </button>
+                <?php if (!empty($user['face_descriptor'])): ?>
+                <button type="button" onclick="removeFaceDescriptor()" class="btn-reset" style="padding:0.5rem 1rem;font-size:0.82rem;">
+                  <i class="fas fa-trash"></i> Désactiver
+                </button>
+                <?php endif; ?>
+              </div>
+            </div>
+          </div>
+
           <!-- Membre depuis -->
           <div class="text-center mt-3">
             <p style="color:#bbb;font-size:0.8rem;"><i class="fas fa-clock"></i> Membre depuis <?= date('d/m/Y', strtotime($user['created_at'])) ?></p>
@@ -167,5 +195,99 @@ include 'template/header.php';
     </div>
   </div>
 </div>
+
+<!-- Face enrollment modal -->
+<div id="face-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#fff;border-radius:24px;padding:1.8rem;max-width:520px;width:100%;box-shadow:0 25px 60px rgba(0,0,0,0.3);">
+    <div style="text-align:center;margin-bottom:1rem;">
+      <h4 style="font-family:'Fredoka One',cursive;color:#00796B;margin:0;"><i class="fas fa-camera"></i> Enregistrer mon visage</h4>
+      <p id="enroll-step" style="color:#666;font-size:0.9rem;margin-top:0.4rem;">Chargement des modèles…</p>
+    </div>
+    <div style="position:relative;border-radius:18px;overflow:hidden;background:#000;aspect-ratio:4/3;">
+      <video id="face-video" autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1);"></video>
+      <div id="face-overlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;background:rgba(0,0,0,0.5);">
+        Préparation…
+      </div>
+    </div>
+    <div style="display:flex;gap:0.7rem;justify-content:center;margin-top:1.2rem;flex-wrap:wrap;">
+      <button type="button" id="btn-capture" class="btn-chunky" disabled style="opacity:0.5;"><i class="fas fa-camera"></i> Capturer</button>
+      <button type="button" onclick="closeFaceEnroll()" class="btn-reset"><i class="fas fa-times"></i> Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+<script src="/TinyTrack/assets/js/face-auth.js"></script>
+<script>
+let enrollState = { stream: null, samples: [], modal: null, video: null, overlay: null, btn: null, step: null };
+
+async function openFaceEnroll() {
+  enrollState.modal = document.getElementById('face-modal');
+  enrollState.video = document.getElementById('face-video');
+  enrollState.overlay = document.getElementById('face-overlay');
+  enrollState.btn = document.getElementById('btn-capture');
+  enrollState.step = document.getElementById('enroll-step');
+  enrollState.samples = [];
+
+  enrollState.modal.style.display = 'flex';
+  enrollState.btn.disabled = true;
+  enrollState.btn.style.opacity = 0.5;
+  enrollState.btn.onclick = doCapture;
+  enrollState.overlay.textContent = 'Chargement des modèles…';
+  enrollState.step.textContent = 'Chargement des modèles…';
+
+  try {
+    await FaceAuth.loadModels();
+    enrollState.stream = await FaceAuth.startCamera(enrollState.video);
+    enrollState.overlay.textContent = '';
+    enrollState.overlay.style.background = 'transparent';
+    enrollState.btn.disabled = false;
+    enrollState.btn.style.opacity = 1;
+    enrollState.step.textContent = 'Capture 1/3 — placez votre visage face à la caméra';
+  } catch (e) {
+    enrollState.overlay.textContent = 'Erreur : ' + (e.message || e);
+  }
+}
+
+async function doCapture() {
+  enrollState.btn.disabled = true;
+  enrollState.step.textContent = 'Détection…';
+  const desc = await FaceAuth.captureDescriptor(enrollState.video);
+  enrollState.btn.disabled = false;
+  if (!desc) {
+    enrollState.step.textContent = 'Aucun visage détecté. Réessayez.';
+    return;
+  }
+  enrollState.samples.push(desc);
+  if (enrollState.samples.length < 3) {
+    enrollState.step.textContent = `Capture ${enrollState.samples.length + 1}/3 — bougez légèrement la tête`;
+    return;
+  }
+  // Three samples collected → average + send
+  enrollState.step.textContent = 'Enregistrement…';
+  enrollState.btn.disabled = true;
+  const avg = FaceAuth.averageDescriptors(enrollState.samples);
+  const r = await FaceAuth.postJSON('/TinyTrack/View/auth/face_enroll.php', { descriptor: avg });
+  if (r.success) {
+    enrollState.step.innerHTML = '<i class="fas fa-check-circle" style="color:#4CAF50"></i> Visage enregistré !';
+    setTimeout(() => { closeFaceEnroll(); location.reload(); }, 1200);
+  } else {
+    enrollState.step.textContent = 'Erreur : ' + (r.error || 'inconnue');
+    enrollState.btn.disabled = false;
+  }
+}
+
+function closeFaceEnroll() {
+  FaceAuth.stopCamera(enrollState.stream);
+  enrollState.modal.style.display = 'none';
+}
+
+async function removeFaceDescriptor() {
+  if (!confirm('Désactiver la reconnaissance faciale ?')) return;
+  const r = await FaceAuth.postJSON('/TinyTrack/View/auth/face_enroll.php', { action: 'remove' });
+  if (r.success) location.reload();
+  else alert('Erreur : ' + r.error);
+}
+</script>
 
 <?php include 'template/footer.php'; ?>

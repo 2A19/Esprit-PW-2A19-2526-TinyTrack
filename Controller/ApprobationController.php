@@ -105,8 +105,8 @@ class ApprobationController {
         $body .= '<div style="background:#f8f9fa;padding:12px;text-align:center;font-size:12px;color:#888;">TinyTrack 2026 - ESPRIT 2A19</div>';
         $body .= '</div></body></html>';
 
-        $smtp_user = 'eya.belhajmabrrouk@gmail.com';
-        $smtp_pass = 'owclpimeecveksjf';
+        $smtp_user = SMTP_USER;
+        $smtp_pass = SMTP_PASS;
 
         $ctx = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
         $socket = @stream_socket_client('ssl://smtp.gmail.com:465', $errno, $errstr, 10, STREAM_CLIENT_CONNECT, $ctx);

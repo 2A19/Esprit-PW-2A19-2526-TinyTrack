@@ -1,0 +1,11 @@
+RewriteEngine On
+RewriteBase /TinyTrack/
+
+# Skip existing assets and vendor
+RewriteRule ^assets/ - [L]
+RewriteRule ^vendor/ - [L]
+
+# Route everything else through index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]

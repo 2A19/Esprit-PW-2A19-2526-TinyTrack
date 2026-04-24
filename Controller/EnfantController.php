@@ -140,6 +140,86 @@ class EnfantController {
         return $enfant->rechercher($keyword);
     }
 
+    /**
+     * List enfants with combined filters (search, sexe, statut, niveau) and sorting.
+     * Whitelists $sortBy / $sortDir to prevent SQL injection via query string.
+     */
+    public function listerFiltered($filters = [], $sortBy = 'date_inscription', $sortDir = 'desc') {
+        $db = Database::getInstance()->getConnection();
+
+        $validSort = [
+            'nom'              => 'e.nom',
+            'prenom'           => 'e.prenom',
+            'age'              => 'e.date_naissance',   // older DOB = older child
+            'date_inscription' => 'e.date_inscription',
+        ];
+        $sortCol = $validSort[$sortBy] ?? 'e.date_inscription';
+        $sortDir = strtolower($sortDir) === 'asc' ? 'ASC' : 'DESC';
+        // For age: the oldest child has the earliest date_naissance, so invert.
+        if ($sortBy === 'age') {
+            $sortDir = ($sortDir === 'ASC') ? 'DESC' : 'ASC';
+        }
+
+        $where = [];
+        $params = [];
+
+        if (!empty($filters['q'])) {
+            $where[] = "(e.nom LIKE :q1 OR e.prenom LIKE :q2 OR e.code_unique LIKE :q3)";
+            $kw = '%' . $filters['q'] . '%';
+            $params[':q1'] = $kw;
+            $params[':q2'] = $kw;
+            $params[':q3'] = $kw;
+        }
+        if (!empty($filters['sexe']) && in_array($filters['sexe'], ['M', 'F'])) {
+            $where[] = "e.sexe = :sexe";
+            $params[':sexe'] = $filters['sexe'];
+        }
+        if (!empty($filters['statut']) && in_array($filters['statut'], ['actif', 'archive'])) {
+            $where[] = "e.statut = :statut";
+            $params[':statut'] = $filters['statut'];
+        }
+        if (!empty($filters['niveau']) && in_array($filters['niveau'], ['petit', 'moyen', 'grand'])) {
+            $where[] = "g.niveau = :niveau";
+            $params[':niveau'] = $filters['niveau'];
+        }
+        if (!empty($filters['parent_id'])) {
+            $where[] = "e.parent_id = :pid";
+            $params[':pid'] = (int)$filters['parent_id'];
+        }
+
+        $sql = "SELECT e.* FROM enfant e LEFT JOIN groupe g ON e.groupe_id = g.id";
+        if (!empty($where)) $sql .= " WHERE " . implode(' AND ', $where);
+        $sql .= " ORDER BY $sortCol $sortDir";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Aggregated stats for a filtered set of enfants.
+     * Returns totals + breakdown by sexe + breakdown by age bucket.
+     */
+    public function statsEnfants($enfants) {
+        $total = count($enfants);
+        $garcons = $filles = 0;
+        $ages = ['0-2' => 0, '3-4' => 0, '5-6' => 0];
+        $now = new DateTime();
+
+        foreach ($enfants as $e) {
+            if ($e['sexe'] === 'M') $garcons++; else $filles++;
+            try {
+                $dob = new DateTime($e['date_naissance']);
+                $age = $now->diff($dob)->y;
+                if ($age <= 2) $ages['0-2']++;
+                elseif ($age <= 4) $ages['3-4']++;
+                else $ages['5-6']++;
+            } catch (Exception $e) {}
+        }
+
+        return ['total' => $total, 'garcons' => $garcons, 'filles' => $filles, 'ages' => $ages];
+    }
+
     // Count
     public function compterEnfants() {
         $enfant = new Enfant();

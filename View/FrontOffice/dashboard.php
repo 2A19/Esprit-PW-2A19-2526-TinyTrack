@@ -24,72 +24,98 @@ include 'template/header.php';
 
 <div class="container py-5" style="position:relative;z-index:1;">
 
-  <div class="text-center mb-5">
-    <img src="/TinyTrack/assets/images/logo.png" alt="TinyTrack" style="height:80px;margin-bottom:10px;">
-    <h2 style="font-family:'Fredoka One',cursive;color:#333;font-size:2rem;">Tableau de bord</h2>
-    <p class="text-muted">Bonjour <strong style="color:#4CAF50;"><?= htmlspecialchars($_SESSION['user_nom']) ?></strong></p>
+  <!-- HERO -->
+  <section class="hero-kids mb-5">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <span class="badge" style="background:#fff;color:#26A69A;border-radius:50px;padding:0.4rem 1rem;font-weight:800;box-shadow:0 3px 10px rgba(0,0,0,0.05);">
+          &#x2728; Tableau de bord admin
+        </span>
+        <h1 class="mt-3">
+          Bonjour <span class="accent-pink"><?= htmlspecialchars($_SESSION['user_nom']) ?></span>,<br>
+          <span class="accent-yellow">spark</span> la journée <span class="accent-teal">!</span>
+        </h1>
+        <p class="lead">Un coup d'œil rapide sur votre creche — enfants, equipe, evenements et demandes en attente. Tout est la, au chaud.</p>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="/TinyTrack/View/FrontOffice/enfants/list.php" class="btn-chunky">
+            <i class="fas fa-child"></i> Voir les enfants
+          </a>
+          <?php if ($pendingAccounts > 0): ?>
+            <a href="/TinyTrack/View/FrontOffice/approbation.php" class="btn-chunky btn-chunky-pink">
+              <i class="fas fa-bell"></i> <?= $pendingAccounts ?> en attente
+            </a>
+          <?php endif; ?>
+        </div>
+      </div>
+      <div class="col-md-4 position-relative d-none d-md-block">
+        <div class="hero-sticker">
+          <img src="/TinyTrack/assets/images/logo.png" alt="TinyTrack">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="text-center mb-4">
+    <h2 class="section-title">Vue d'ensemble</h2>
+    <div class="rainbow-divider"></div>
   </div>
 
+  <!-- TILES -->
   <div class="row g-4 justify-content-center">
 
     <!-- Enfants -->
-    <div class="col-md-4 col-6">
-      <a href="/TinyTrack/View/FrontOffice/enfants/list.php" style="text-decoration:none;">
-        <div class="card-kider p-4 text-center" style="cursor:pointer;border-left:5px solid #4CAF50;">
-          <div style="font-size:3rem;margin-bottom:0.5rem;">&#x1F476;</div>
-          <h3 style="font-family:'Fredoka One',cursive;color:#4CAF50;font-size:2.2rem;margin:0;"><?= $totalEnfants ?></h3>
-          <p style="color:#666;font-weight:700;margin:0.3rem 0 0;">Enfants</p>
-        </div>
+    <div class="col-md-4 col-sm-6 col-12">
+      <a href="/TinyTrack/View/FrontOffice/enfants/list.php" class="tile-kids tile-mint">
+        <div class="tile-emoji">&#x1F476;</div>
+        <h3 class="tile-number"><?= $totalEnfants ?></h3>
+        <p class="tile-label">Enfants</p>
       </a>
     </div>
 
     <!-- Éducateurs -->
-    <div class="col-md-4 col-6">
-      <a href="/TinyTrack/View/FrontOffice/educateurs/list.php" style="text-decoration:none;">
-        <div class="card-kider p-4 text-center" style="cursor:pointer;border-left:5px solid #5B9BD5;">
-          <div style="font-size:3rem;margin-bottom:0.5rem;">&#x1F469;&#x200D;&#x1F3EB;</div>
-          <h3 style="font-family:'Fredoka One',cursive;color:#5B9BD5;font-size:2.2rem;margin:0;"><?= $totalEducateurs ?></h3>
-          <p style="color:#666;font-weight:700;margin:0.3rem 0 0;">Éducateurs</p>
-        </div>
+    <div class="col-md-4 col-sm-6 col-12">
+      <a href="/TinyTrack/View/FrontOffice/educateurs/list.php" class="tile-kids tile-sky">
+        <div class="tile-emoji">&#x1F469;&#x200D;&#x1F3EB;</div>
+        <h3 class="tile-number"><?= $totalEducateurs ?></h3>
+        <p class="tile-label">Éducateurs</p>
       </a>
     </div>
 
-
     <!-- Événements -->
-    <div class="col-md-4 col-6">
-      <a href="/TinyTrack/View/BackOffice/evenements/evenementList.php" style="text-decoration:none;">
-        <div class="card-kider p-4 text-center" style="cursor:pointer;border-left:5px solid #FFA726;">
-          <div style="font-size:3rem;margin-bottom:0.5rem;">&#x1F389;</div>
-          <h3 style="font-family:'Fredoka One',cursive;color:#FFA726;font-size:2.2rem;margin:0;"><?= $totalEvents ?></h3>
-          <p style="color:#666;font-weight:700;margin:0.3rem 0 0;">Événements</p>
-        </div>
+    <div class="col-md-4 col-sm-6 col-12">
+      <a href="/TinyTrack/View/BackOffice/evenements/evenementList.php" class="tile-kids tile-coral">
+        <div class="tile-emoji">&#x1F389;</div>
+        <h3 class="tile-number"><?= $totalEvents ?></h3>
+        <p class="tile-label">Événements</p>
       </a>
     </div>
 
     <!-- Rapports -->
-    <div class="col-md-4 col-6">
-      <a href="/TinyTrack/View/BackOffice/rapports/listRapports.php" style="text-decoration:none;">
-        <div class="card-kider p-4 text-center" style="cursor:pointer;border-left:5px solid #9C7CDB;">
-          <div style="font-size:3rem;margin-bottom:0.5rem;">&#x1F4DD;</div>
-          <h3 style="font-family:'Fredoka One',cursive;color:#9C7CDB;font-size:2.2rem;margin:0;"><?= $totalRapports ?></h3>
-          <p style="color:#666;font-weight:700;margin:0.3rem 0 0;">Rapports</p>
-        </div>
+    <div class="col-md-4 col-sm-6 col-12">
+      <a href="/TinyTrack/View/BackOffice/rapports/listRapports.php" class="tile-kids tile-grape">
+        <div class="tile-emoji">&#x1F4DD;</div>
+        <h3 class="tile-number"><?= $totalRapports ?></h3>
+        <p class="tile-label">Rapports</p>
       </a>
     </div>
 
     <!-- Approbation -->
-    <div class="col-md-4 col-6">
-      <a href="/TinyTrack/View/FrontOffice/approbation.php" style="text-decoration:none;">
-        <div class="card-kider p-4 text-center" style="cursor:pointer;border-left:5px solid <?= $pendingAccounts > 0 ? '#EF5350' : '#4CAF50' ?>;">
-          <div style="font-size:3rem;margin-bottom:0.5rem;">&#x23F3;</div>
-          <h3 style="font-family:'Fredoka One',cursive;color:<?= $pendingAccounts > 0 ? '#EF5350' : '#4CAF50' ?>;font-size:2.2rem;margin:0;"><?= $pendingAccounts ?></h3>
-          <p style="color:#666;font-weight:700;margin:0.3rem 0 0;">En attente</p>
-        </div>
+    <div class="col-md-4 col-sm-6 col-12">
+      <a href="/TinyTrack/View/FrontOffice/approbation.php" class="tile-kids <?= $pendingAccounts > 0 ? 'is-alert' : 'tile-sun' ?>">
+        <div class="tile-emoji">&#x23F3;</div>
+        <h3 class="tile-number"><?= $pendingAccounts ?></h3>
+        <p class="tile-label">En attente</p>
       </a>
     </div>
 
-
-
+    <!-- Parents -->
+    <div class="col-md-4 col-sm-6 col-12">
+      <a href="/TinyTrack/View/FrontOffice/parents/list.php" class="tile-kids tile-rose">
+        <div class="tile-emoji">&#x1F46A;</div>
+        <h3 class="tile-number"><?= $totalParents ?></h3>
+        <p class="tile-label">Parents</p>
+      </a>
+    </div>
 
   </div>
 </div>

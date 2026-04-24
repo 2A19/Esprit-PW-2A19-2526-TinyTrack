@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/google_oauth.php';
 
 class AuthController {
 
@@ -96,6 +97,19 @@ class AuthController {
         $errors = [];
         $lettresRegex = '/^[a-zA-ZÀ-ÿ\s\-]+$/';
         $role = $data['role'] ?? '';
+
+        // If the signup came through "Continuer avec Google", the hidden
+        // google_jwt field contains the ID token. We re-verify it here so
+        // the name/email cannot be spoofed via the client.
+        if (!empty($data['google_jwt'])) {
+            $claims = verifyGoogleToken($data['google_jwt']);
+            if ($claims) {
+                $data['nom']    = $claims['family_name'] ?? ($data['nom'] ?? '');
+                $data['prenom'] = $claims['given_name']  ?? ($data['prenom'] ?? '');
+                $data['email']  = $claims['email'];
+            }
+        }
+
         $nom = trim($data['nom'] ?? '');
         $prenom = trim($data['prenom'] ?? '');
         $email = trim($data['email'] ?? '');
@@ -217,6 +231,139 @@ class AuthController {
     }
 
     /**
+     * Login via face recognition.
+     * - $descriptor : array of 128 floats produced by face-api.js client-side.
+     * - Compares against every enrolled user's stored descriptor (Euclidean distance).
+     * - The closest match wins if its distance is below FACE_MATCH_THRESHOLD.
+     */
+    const FACE_MATCH_THRESHOLD = 0.55;
+
+    public function loginWithFace($descriptor) {
+        if (!is_array($descriptor) || count($descriptor) !== 128) {
+            return ['success' => false, 'error' => "Descripteur facial invalide."];
+        }
+        // Cast every value to float (safety against malformed input).
+        foreach ($descriptor as $v) {
+            if (!is_numeric($v)) {
+                return ['success' => false, 'error' => "Descripteur facial invalide."];
+            }
+        }
+        $descriptor = array_map('floatval', $descriptor);
+
+        $rows = $this->db->query(
+            "SELECT id, nom, prenom, role, statut, face_descriptor
+             FROM user
+             WHERE face_descriptor IS NOT NULL"
+        )->fetchAll();
+
+        $bestUser = null;
+        $bestDistance = INF;
+        foreach ($rows as $r) {
+            $stored = json_decode($r['face_descriptor'], true);
+            if (!is_array($stored) || count($stored) !== 128) continue;
+            $d = $this->faceDistance($descriptor, $stored);
+            if ($d < $bestDistance) {
+                $bestDistance = $d;
+                $bestUser = $r;
+            }
+        }
+
+        if (!$bestUser || $bestDistance > self::FACE_MATCH_THRESHOLD) {
+            return ['success' => false, 'error' => "Aucun visage reconnu. Essayez avec votre mot de passe."];
+        }
+        if ($bestUser['statut'] !== 'actif') {
+            return ['success' => false, 'error' => "Votre compte n'est pas actif."];
+        }
+
+        $this->createSession($bestUser);
+        $redirect = match ($bestUser['role']) {
+            'admin'     => '/TinyTrack/View/FrontOffice/dashboard.php',
+            'educateur' => '/TinyTrack/View/FrontOffice/educateurs/profil.php',
+            'parent'    => '/TinyTrack/View/FrontOffice/enfants/list.php',
+            default     => '/TinyTrack/View/FrontOffice/dashboard.php',
+        };
+        return ['success' => true, 'redirect' => $redirect, 'distance' => $bestDistance];
+    }
+
+    /**
+     * Save (or replace) the face descriptor for a user.
+     */
+    public function saveFaceDescriptor($userId, $descriptor) {
+        if (!is_array($descriptor) || count($descriptor) !== 128) {
+            return ['success' => false, 'error' => "Descripteur invalide."];
+        }
+        foreach ($descriptor as $v) {
+            if (!is_numeric($v)) {
+                return ['success' => false, 'error' => "Descripteur invalide."];
+            }
+        }
+        $descriptor = array_map('floatval', $descriptor);
+        $stmt = $this->db->prepare(
+            "UPDATE user SET face_descriptor = :desc, face_enrolled_at = NOW() WHERE id = :id"
+        );
+        $stmt->execute([':desc' => json_encode($descriptor), ':id' => (int)$userId]);
+        return ['success' => true];
+    }
+
+    /**
+     * Remove a user's face descriptor (disables face login for this user).
+     */
+    public function removeFaceDescriptor($userId) {
+        $stmt = $this->db->prepare(
+            "UPDATE user SET face_descriptor = NULL, face_enrolled_at = NULL WHERE id = :id"
+        );
+        $stmt->execute([':id' => (int)$userId]);
+        return ['success' => true];
+    }
+
+    /**
+     * Euclidean distance between two 128-D face descriptors.
+     * (Same metric face-api.js uses internally.)
+     */
+    private function faceDistance(array $a, array $b) {
+        $sum = 0.0;
+        for ($i = 0; $i < 128; $i++) {
+            $diff = $a[$i] - $b[$i];
+            $sum += $diff * $diff;
+        }
+        return sqrt($sum);
+    }
+
+    /**
+     * Login via a Google Identity Services ID token (JWT).
+     * - Verifies the token is genuine and targeted at our app.
+     * - Matches the Google email against our user table.
+     * - Requires the account to be active (admin approval done).
+     */
+    public function loginWithGoogle($idToken) {
+        $claims = verifyGoogleToken($idToken);
+        if (!$claims) {
+            return ['success' => false, 'error' => "Jeton Google invalide ou expire."];
+        }
+
+        $email = $claims['email'];
+        $stmt = $this->db->prepare("SELECT * FROM user WHERE email = :email LIMIT 1");
+        $stmt->execute([':email' => $email]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            return ['success' => false, 'error' => "Aucun compte TinyTrack n'est associe a ce Gmail. Inscrivez-vous d'abord."];
+        }
+        if ($user['statut'] !== 'actif') {
+            return ['success' => false, 'error' => "Votre compte est en attente d'approbation par l'administration."];
+        }
+
+        $this->createSession($user);
+        $redirect = match ($user['role']) {
+            'admin'     => '/TinyTrack/View/FrontOffice/dashboard.php',
+            'educateur' => '/TinyTrack/View/FrontOffice/educateurs/profil.php',
+            'parent'    => '/TinyTrack/View/FrontOffice/enfants/list.php',
+            default     => '/TinyTrack/View/FrontOffice/dashboard.php',
+        };
+        return ['success' => true, 'redirect' => $redirect];
+    }
+
+    /**
      * Handle login — decides which method to call based on role
      */
     public function handleLogin($postData) {
@@ -245,6 +392,94 @@ class AuthController {
     public function logout() {
         session_start();
         session_destroy();
+    }
+
+    /**
+     * Request a password reset.
+     * - Verifies the email exists and the account is active.
+     * - Generates a cryptographically-random token (32 bytes).
+     * - Stores only its SHA-256 hash (never the token itself).
+     * - Token is single-use and expires after 30 minutes.
+     * Returns the plain token + user's prenom on success so the caller can send the email.
+     */
+    public function requestReset($email) {
+        $email = trim($email);
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return ['success' => false, 'error' => "Veuillez saisir un email valide."];
+        }
+
+        $stmt = $this->db->prepare("SELECT id, prenom, statut FROM user WHERE email = :email LIMIT 1");
+        $stmt->execute([':email' => $email]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            return ['success' => false, 'error' => "Aucun compte associe a cet email."];
+        }
+        if ($user['statut'] !== 'actif') {
+            return ['success' => false, 'error' => "Ce compte n'est pas encore actif. Contactez l'administration."];
+        }
+
+        $token = bin2hex(random_bytes(32));
+        $hash = hash('sha256', $token);
+        $expires = (new DateTime('+30 minutes'))->format('Y-m-d H:i:s');
+
+        // Invalidate any previous pending tokens for this user.
+        $this->db->prepare("UPDATE password_reset SET used = 1 WHERE user_id = :uid AND used = 0")
+                 ->execute([':uid' => $user['id']]);
+
+        $stmt = $this->db->prepare("INSERT INTO password_reset (user_id, token_hash, expires_at) VALUES (:uid, :hash, :exp)");
+        $stmt->execute([':uid' => $user['id'], ':hash' => $hash, ':exp' => $expires]);
+
+        return ['success' => true, 'token' => $token, 'prenom' => $user['prenom']];
+    }
+
+    /**
+     * Consume a reset token and set a new password.
+     * Validates: token exists, not used, not expired, new password matches confirm, min length 6.
+     */
+    public function resetPassword($token, $newPassword, $confirmPassword) {
+        $token = trim((string)$token);
+        if ($token === '' || !ctype_xdigit($token)) {
+            return ['success' => false, 'error' => "Lien de reinitialisation invalide."];
+        }
+        if (empty($newPassword) || strlen($newPassword) < 6) {
+            return ['success' => false, 'error' => "Le mot de passe doit contenir au moins 6 caracteres."];
+        }
+        if ($newPassword !== $confirmPassword) {
+            return ['success' => false, 'error' => "Les deux mots de passe ne correspondent pas."];
+        }
+
+        $hash = hash('sha256', $token);
+        $stmt = $this->db->prepare(
+            "SELECT id, user_id, expires_at, used FROM password_reset WHERE token_hash = :hash LIMIT 1"
+        );
+        $stmt->execute([':hash' => $hash]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            return ['success' => false, 'error' => "Lien invalide ou deja utilise."];
+        }
+        if ((int)$row['used'] === 1) {
+            return ['success' => false, 'error' => "Ce lien a deja ete utilise."];
+        }
+        if (strtotime($row['expires_at']) < time()) {
+            return ['success' => false, 'error' => "Ce lien a expire. Demandez-en un nouveau."];
+        }
+
+        // Apply the new password and burn the token (single transaction).
+        $this->db->beginTransaction();
+        try {
+            $pwdHash = password_hash($newPassword, PASSWORD_BCRYPT);
+            $this->db->prepare("UPDATE user SET mot_de_passe = :pwd WHERE id = :uid")
+                     ->execute([':pwd' => $pwdHash, ':uid' => $row['user_id']]);
+            $this->db->prepare("UPDATE password_reset SET used = 1 WHERE id = :id")
+                     ->execute([':id' => $row['id']]);
+            $this->db->commit();
+            return ['success' => true];
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            return ['success' => false, 'error' => "Erreur technique, reessayez."];
+        }
     }
 
     /**

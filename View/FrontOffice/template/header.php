@@ -11,7 +11,7 @@
   <!-- Google Fonts (Kider playful) -->
   <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <!-- Playful Theme -->
-  <link rel="stylesheet" href="/TinyTrack/assets/css/playful.css?v=2">
+  <link rel="stylesheet" href="/TinyTrack/assets/css/playful.css?v=3">
   <style>
     :root {
       --kider-green: #4CAF50;
@@ -90,6 +90,12 @@
     .navbar-kider .nav-link:hover {
       color: var(--kider-green);
       background: rgba(76,175,80,0.08);
+    }
+    .navbar-kider .nav-link.active {
+      color: var(--kider-green) !important;
+      background: rgba(76,175,80,0.12);
+      font-weight: 800;
+      box-shadow: 0 2px 0 var(--kider-green);
     }
     .navbar-kider .nav-link i {
       margin-right: 4px;
@@ -299,7 +305,7 @@
 </head>
 <body>
 
-<!-- Playful Background -->
+<!-- Playful Background (ambiance) -->
 <div class="playful-bg">
   <div class="bubble bubble-1"></div>
   <div class="bubble bubble-2"></div>
@@ -314,12 +320,54 @@
   <div class="sparkle sparkle-6"></div>
   <div class="sparkle sparkle-7"></div>
   <div class="sparkle sparkle-8"></div>
-  <div class="deco-emoji deco-emoji-1">&#x1F476;</div>
-  <div class="deco-emoji deco-emoji-2">&#x2B50;</div>
-  <div class="deco-emoji deco-emoji-3">&#x1F338;</div>
-  <div class="deco-emoji deco-emoji-4">&#x2764;</div>
 </div>
 
+<!-- Kids-store decorative shapes (SVG stars, arcs, blobs) -->
+<div class="kids-shape shape-star-1">
+  <svg viewBox="0 0 24 24" fill="#FFD93D"><path d="M12 2l2.4 6.9L22 10l-5.6 4.6L18 22l-6-3.7L6 22l1.6-7.4L2 10l7.6-1.1z"/></svg>
+</div>
+<div class="kids-shape shape-star-2">
+  <svg viewBox="0 0 24 24" fill="#FF8FAB"><path d="M12 2l2.4 6.9L22 10l-5.6 4.6L18 22l-6-3.7L6 22l1.6-7.4L2 10l7.6-1.1z"/></svg>
+</div>
+<div class="kids-shape shape-star-3">
+  <svg viewBox="0 0 24 24" fill="#5B9BD5"><path d="M12 2l2.4 6.9L22 10l-5.6 4.6L18 22l-6-3.7L6 22l1.6-7.4L2 10l7.6-1.1z"/></svg>
+</div>
+<div class="kids-shape shape-star-4">
+  <svg viewBox="0 0 24 24" fill="#9C7CDB"><path d="M12 2l2.4 6.9L22 10l-5.6 4.6L18 22l-6-3.7L6 22l1.6-7.4L2 10l7.6-1.1z"/></svg>
+</div>
+<div class="kids-shape shape-arc-1">
+  <svg viewBox="0 0 90 60"><path d="M5 55 A40 40 0 0 1 85 55" fill="none" stroke="#FF8FAB" stroke-width="8" stroke-linecap="round"/><path d="M18 55 A27 27 0 0 1 72 55" fill="none" stroke="#FFD93D" stroke-width="8" stroke-linecap="round"/><path d="M30 55 A15 15 0 0 1 60 55" fill="none" stroke="#26A69A" stroke-width="8" stroke-linecap="round"/></svg>
+</div>
+<div class="kids-shape shape-arc-2">
+  <svg viewBox="0 0 110 70"><path d="M5 65 A50 50 0 0 1 105 65" fill="none" stroke="#9C7CDB" stroke-width="9" stroke-linecap="round"/><path d="M22 65 A33 33 0 0 1 88 65" fill="none" stroke="#FFA726" stroke-width="9" stroke-linecap="round"/><path d="M38 65 A17 17 0 0 1 72 65" fill="none" stroke="#5B9BD5" stroke-width="9" stroke-linecap="round"/></svg>
+</div>
+<div class="kids-shape shape-blob-1">
+  <svg viewBox="0 0 200 200"><path fill="#FFD93D" d="M43.8,-58.6C56.4,-49.3,65.8,-35.1,70.2,-19.6C74.6,-4.1,74,12.7,67.6,27.1C61.1,41.5,48.7,53.5,34.2,61.5C19.8,69.5,3.2,73.5,-13.3,71.4C-29.8,69.3,-46.3,61.2,-58,48.3C-69.7,35.4,-76.6,17.7,-75.9,0.4C-75.2,-16.9,-66.8,-33.8,-54.2,-43.4C-41.5,-53,-24.7,-55.4,-8.8,-44.9C7.1,-34.4,31.2,-67.9,43.8,-58.6Z" transform="translate(100 100)"/></svg>
+</div>
+<div class="kids-shape shape-blob-2">
+  <svg viewBox="0 0 200 200"><path fill="#FF8FAB" d="M41.3,-60.1C52.1,-51.9,58.2,-37.4,63.6,-22.3C69,-7.2,73.7,8.5,70.5,22.8C67.2,37.1,56,50,42.3,58.6C28.6,67.1,12.5,71.3,-3.5,75.5C-19.5,79.8,-39,84.1,-51.3,75.4C-63.6,66.8,-68.7,45.2,-72.5,25.3C-76.3,5.4,-78.7,-12.9,-71.4,-25.9C-64.2,-38.9,-47.3,-46.7,-32.4,-53.8C-17.5,-60.8,-4.6,-67.2,8.5,-68.8C21.5,-70.3,30.5,-68.2,41.3,-60.1Z" transform="translate(100 100)"/></svg>
+</div>
+<div class="kids-shape shape-dot-1"></div>
+<div class="kids-shape shape-dot-2"></div>
+<div class="kids-shape shape-dot-3"></div>
+<div class="kids-shape shape-squiggle-1">
+  <svg viewBox="0 0 70 28"><path d="M2 14 Q10 2 20 14 T40 14 T60 14 T68 14" stroke="#26A69A" stroke-width="4" fill="none" stroke-linecap="round"/></svg>
+</div>
+<div class="kids-shape shape-squiggle-2">
+  <svg viewBox="0 0 80 28"><path d="M2 14 Q12 2 22 14 T44 14 T66 14 T78 14" stroke="#FFA726" stroke-width="4" fill="none" stroke-linecap="round"/></svg>
+</div>
+
+<?php
+// Determine which navbar link is "active" based on the current URL path.
+// Returns 'active' + custom style if the current page matches the given key.
+$__navPath = strtolower($_SERVER['REQUEST_URI'] ?? '');
+function navActive(array $patterns, $currentPath) {
+    foreach ($patterns as $p) {
+        if (strpos($currentPath, $p) !== false) return true;
+    }
+    return false;
+}
+?>
 <!-- Navbar Kider -->
 <nav class="navbar navbar-expand-lg navbar-kider sticky-top">
   <div class="container">
@@ -333,19 +381,22 @@
     <div class="collapse navbar-collapse" id="navbarKider">
       <ul class="navbar-nav ms-auto">
         <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
-        <!-- Admin: juste Dashboard + Profil -->
-        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/dashboard.php" style="color:#4CAF50;font-weight:800;"><i class="fas fa-th-large"></i> Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/profil.php"><i class="fas fa-user-circle"></i> Mon profil</a></li>
+        <!-- Admin : Dashboard + gestion -->
+        <li class="nav-item"><a class="nav-link <?= navActive(['/dashboard.php'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/dashboard.php"><i class="fas fa-th-large"></i> Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['/enfants/'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/enfants/list.php"><i class="fas fa-child"></i> Enfants</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['/educateurs/'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/educateurs/list.php"><i class="fas fa-chalkboard-teacher"></i> Éducateurs</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['/parents/'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/parents/list.php"><i class="fas fa-users"></i> Parents</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['/profil.php'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/profil.php"><i class="fas fa-user-circle"></i> Profil</a></li>
         <?php else: ?>
         <!-- Parent/Éducateur: menu complet -->
-        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/enfants/list.php"><i class="fas fa-child"></i> Enfants</a></li>
-        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/evenements/list.php"><i class="fas fa-calendar-alt"></i> Événements</a></li>
-        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/rapports/listRapportsParent.php"><i class="fas fa-book"></i> Rapports</a></li>
-        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/messages.php"><i class="fas fa-envelope"></i> Messages</a></li>
-        <li class="nav-item"><a class="nav-link" href="/TinyTrack/View/FrontOffice/profil.php"><i class="fas fa-user-circle"></i> Mon profil</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['/enfants/'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/enfants/list.php"><i class="fas fa-child"></i> Enfants</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['/evenements/'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/evenements/list.php"><i class="fas fa-calendar-alt"></i> Événements</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['/rapports/'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/rapports/listRapportsParent.php"><i class="fas fa-book"></i> Rapports</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['/messages.php'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/messages.php"><i class="fas fa-envelope"></i> Messages</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['/profil.php'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/profil.php"><i class="fas fa-user-circle"></i> Mon profil</a></li>
         <?php endif; ?>
-        <li class="nav-item ms-1">
-          <a class="nav-link" href="/TinyTrack/View/auth/logout.php" style="background:#dc3545;color:#fff;border-radius:25px;padding:0.4rem 1rem;" onclick="return confirm('Se déconnecter ?')">
+        <li class="nav-item ms-2">
+          <a class="nav-link nav-link-logout" href="/TinyTrack/View/auth/logout.php" onclick="return confirm('Se déconnecter ?')">
             <i class="fas fa-sign-out-alt"></i> Déconnexion
           </a>
         </li>

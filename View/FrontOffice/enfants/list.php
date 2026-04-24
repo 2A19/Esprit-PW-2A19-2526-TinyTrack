@@ -23,13 +23,26 @@ if ($_SESSION['user_role'] === 'admin') {
     }
 }
 
+// Collect filters + sort from the query string.
+$filters = [
+    'q'      => trim($_GET['q'] ?? ''),
+    'sexe'   => $_GET['sexe'] ?? '',
+    'statut' => $_GET['statut'] ?? '',
+    'niveau' => $_GET['niveau'] ?? '',
+];
+$sortBy  = $_GET['sort'] ?? 'date_inscription';
+$sortDir = $_GET['dir']  ?? 'desc';
+
+// A parent only ever sees their own children — force-filter on parent_id.
 if ($_SESSION['user_role'] === 'parent') {
-    $enfants = $enfantCtrl->listerEnfantsParParent($_SESSION['user_id']);
-} else {
-    $enfants = $enfantCtrl->listerEnfants();
+    $filters['parent_id'] = $_SESSION['user_id'];
 }
 
+$enfants = $enfantCtrl->listerFiltered($filters, $sortBy, $sortDir);
+$stats   = $enfantCtrl->statsEnfants($enfants);
+
 $parentNom = $_SESSION['user_nom'] ?? 'Parent';
+$hasActiveFilters = !empty($filters['q']) || !empty($filters['sexe']) || !empty($filters['statut']) || !empty($filters['niveau']);
 
 include '../template/header.php';
 ?>
@@ -46,27 +59,121 @@ include '../template/header.php';
     </div></div>
   <?php endif; ?>
 
-  <div class="text-center mb-5">
-    <img src="/TinyTrack/assets/images/logo.png" alt="TinyTrack" style="height:70px; margin-bottom:15px;">
+  <div class="text-center mb-4">
     <h2 class="section-title"><i class="fas fa-child"></i> Enfants</h2>
-    <p class="text-muted mt-3">
-      Bonjour <strong style="color:#4CAF50;"><?= htmlspecialchars($parentNom) ?></strong>, consultez les fiches des enfants
+    <div class="rainbow-divider"></div>
+    <p class="text-muted mt-2">
+      Bonjour <strong style="color:#4CAF50;"><?= htmlspecialchars($parentNom) ?></strong>
     </p>
   </div>
 
+  <!-- MINI STATS -->
+  <div class="mini-stats-row">
+    <div class="mini-stat ms-mint">
+      <div class="ms-icon"><i class="fas fa-child"></i></div>
+      <div>
+        <p class="ms-value"><?= $stats['total'] ?></p>
+        <p class="ms-label">Résultats</p>
+      </div>
+    </div>
+    <div class="mini-stat ms-sky">
+      <div class="ms-icon"><i class="fas fa-male"></i></div>
+      <div>
+        <p class="ms-value"><?= $stats['garcons'] ?></p>
+        <p class="ms-label">Garçons</p>
+      </div>
+    </div>
+    <div class="mini-stat ms-rose">
+      <div class="ms-icon"><i class="fas fa-female"></i></div>
+      <div>
+        <p class="ms-value"><?= $stats['filles'] ?></p>
+        <p class="ms-label">Filles</p>
+      </div>
+    </div>
+    <div class="mini-stat ms-sun">
+      <div class="ms-icon"><i class="fas fa-birthday-cake"></i></div>
+      <div>
+        <p class="ms-value"><?= $stats['ages']['0-2'] ?></p>
+        <p class="ms-label">0-2 ans</p>
+      </div>
+    </div>
+    <div class="mini-stat ms-grape">
+      <div class="ms-icon"><i class="fas fa-star"></i></div>
+      <div>
+        <p class="ms-value"><?= $stats['ages']['3-4'] ?></p>
+        <p class="ms-label">3-4 ans</p>
+      </div>
+    </div>
+    <div class="mini-stat ms-coral" style="border-left-color:#FFA726;background:#fff;">
+      <div class="ms-icon" style="background:#FFF3E0;color:#E65100;"><i class="fas fa-graduation-cap"></i></div>
+      <div>
+        <p class="ms-value" style="color:#E65100;"><?= $stats['ages']['5-6'] ?></p>
+        <p class="ms-label">5-6 ans</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <!-- TOOLBAR -->
+      <form method="GET" class="filters-toolbar">
+        <div class="toolbar-row">
+          <div class="search-input-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" name="q" class="filter-search" placeholder="Rechercher par nom, prénom, code..." value="<?= htmlspecialchars($filters['q']) ?>">
+          </div>
+          <?php if ($_SESSION['user_role'] !== 'parent'): ?>
+          <select name="sexe" class="filter-select" onchange="this.form.submit()">
+            <option value="">Tous sexes</option>
+            <option value="M" <?= $filters['sexe']==='M'?'selected':'' ?>>Garçons</option>
+            <option value="F" <?= $filters['sexe']==='F'?'selected':'' ?>>Filles</option>
+          </select>
+          <select name="statut" class="filter-select" onchange="this.form.submit()">
+            <option value="">Tous statuts</option>
+            <option value="actif"   <?= $filters['statut']==='actif'?'selected':'' ?>>Actifs</option>
+            <option value="archive" <?= $filters['statut']==='archive'?'selected':'' ?>>Archivés</option>
+          </select>
+          <select name="niveau" class="filter-select" onchange="this.form.submit()">
+            <option value="">Tous niveaux</option>
+            <option value="petit" <?= $filters['niveau']==='petit'?'selected':'' ?>>Petit</option>
+            <option value="moyen" <?= $filters['niveau']==='moyen'?'selected':'' ?>>Moyen</option>
+            <option value="grand" <?= $filters['niveau']==='grand'?'selected':'' ?>>Grand</option>
+          </select>
+          <?php endif; ?>
+          <select name="sort" class="filter-select" onchange="this.form.submit()">
+            <option value="date_inscription" <?= $sortBy==='date_inscription'?'selected':'' ?>>Tri : inscription</option>
+            <option value="nom"              <?= $sortBy==='nom'?'selected':'' ?>>Tri : nom</option>
+            <option value="prenom"           <?= $sortBy==='prenom'?'selected':'' ?>>Tri : prénom</option>
+            <option value="age"              <?= $sortBy==='age'?'selected':'' ?>>Tri : âge</option>
+          </select>
+          <select name="dir" class="filter-select" onchange="this.form.submit()">
+            <option value="desc" <?= $sortDir==='desc'?'selected':'' ?>>↓ Desc</option>
+            <option value="asc"  <?= $sortDir==='asc'?'selected':'' ?>>↑ Asc</option>
+          </select>
+          <button type="submit" class="btn-chunky" style="padding:0.7rem 1.4rem;font-size:0.9rem;"><i class="fas fa-filter"></i> Filtrer</button>
+          <?php if ($hasActiveFilters): ?>
+            <a href="list.php" class="btn-reset"><i class="fas fa-times"></i> Réinitialiser</a>
+          <?php endif; ?>
+        </div>
+      </form>
+
+      <p class="results-count"><strong><?= $stats['total'] ?></strong> enfant(s) affiché(s)<?= $hasActiveFilters ? ' — filtres actifs' : '' ?></p>
+    </div>
+
+    <div class="col-lg-4">
+      <!-- CHART -->
+      <div class="chart-card">
+        <h5><i class="fas fa-chart-pie" style="color:#26A69A"></i> Répartition par âge</h5>
+        <canvas id="chart-ages"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIST -->
   <?php foreach ($enfants as $e): ?>
     <?php
-      // Get groupe info
-      $groupe = null;
-      if ($e['groupe_id']) {
-          $groupe = $enfantCtrl->getGroupeById($e['groupe_id']);
-      }
-
-      // Get educateur info
-      $educateur = null;
-      if ($e['groupe_id']) {
-          $educateur = $enfantCtrl->getEducateurByGroupeId($e['groupe_id']);
-      }
+      $groupe    = $e['groupe_id'] ? $enfantCtrl->getGroupeById($e['groupe_id']) : null;
+      $educateur = $e['groupe_id'] ? $enfantCtrl->getEducateurByGroupeId($e['groupe_id']) : null;
     ?>
 
     <div class="row justify-content-center mb-4">
@@ -90,6 +197,11 @@ include '../template/header.php';
                 <span style="background:rgba(255,255,255,0.25);color:#fff;padding:0.2rem 0.7rem;border-radius:15px;font-size:0.75rem;font-weight:700;">
                   <?= $e['sexe'] === 'M' ? 'Garçon' : 'Fille' ?>
                 </span>
+                <?php if (!empty($e['code_unique'])): ?>
+                <span style="background:rgba(0,0,0,0.15);color:#fff;padding:0.2rem 0.7rem;border-radius:15px;font-size:0.75rem;font-weight:700;font-family:'Courier New',monospace;">
+                  <?= htmlspecialchars($e['code_unique']) ?>
+                </span>
+                <?php endif; ?>
               </div>
             </div>
           </div>
@@ -146,12 +258,42 @@ include '../template/header.php';
     <div class="row justify-content-center">
       <div class="col-md-8 text-center">
         <div class="card-kider p-5">
-          <i class="fas fa-baby fa-4x" style="color:#ddd;"></i>
-          <h5 style="font-family:'Fredoka One',cursive;color:#999;margin-top:1rem;">Aucun enfant</h5>
+          <i class="fas fa-search fa-4x" style="color:#ddd;"></i>
+          <h5 style="font-family:'Fredoka One',cursive;color:#999;margin-top:1rem;">Aucun enfant ne correspond aux filtres</h5>
+          <?php if ($hasActiveFilters): ?>
+            <a href="list.php" class="btn-reset mt-3"><i class="fas fa-times"></i> Réinitialiser les filtres</a>
+          <?php endif; ?>
         </div>
       </div>
     </div>
   <?php endif; ?>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  var ctx = document.getElementById('chart-ages');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['0-2 ans', '3-4 ans', '5-6 ans'],
+      datasets: [{
+        data: [<?= $stats['ages']['0-2'] ?>, <?= $stats['ages']['3-4'] ?>, <?= $stats['ages']['5-6'] ?>],
+        backgroundColor: ['#FFD93D', '#9C7CDB', '#FFA726'],
+        borderWidth: 4,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'Nunito', weight: '700', size: 12 }, boxWidth: 14, padding: 12 } }
+      },
+      cutout: '65%'
+    }
+  });
+})();
+</script>
 
 <?php include '../template/footer.php'; ?>

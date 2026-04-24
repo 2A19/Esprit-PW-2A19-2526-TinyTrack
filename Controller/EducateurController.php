@@ -77,6 +77,111 @@ class EducateurController {
     }
 
     /**
+     * List educateurs with combined search + filters + sort.
+     */
+    public function listerEducateursFiltered($filters = [], $sortBy = 'nom', $sortDir = 'asc') {
+        $validSort = ['nom' => 'u.nom', 'prenom' => 'u.prenom', 'nb_enfants' => 'nb_enfants'];
+        $sortCol = $validSort[$sortBy] ?? 'u.nom';
+        $sortDir = strtolower($sortDir) === 'desc' ? 'DESC' : 'ASC';
+
+        $where = ["u.role = 'educateur'"];
+        $params = [];
+
+        if (!empty($filters['q'])) {
+            $where[] = "(u.nom LIKE :q1 OR u.prenom LIKE :q2 OR u.email LIKE :q3 OR u.code_unique LIKE :q4)";
+            $kw = '%' . $filters['q'] . '%';
+            $params[':q1'] = $kw;
+            $params[':q2'] = $kw;
+            $params[':q3'] = $kw;
+            $params[':q4'] = $kw;
+        }
+        if (!empty($filters['statut']) && in_array($filters['statut'], ['actif', 'inactif', 'en_attente'])) {
+            $where[] = "u.statut = :statut";
+            $params[':statut'] = $filters['statut'];
+        }
+        if (!empty($filters['niveau']) && in_array($filters['niveau'], ['petit', 'moyen', 'grand'])) {
+            $where[] = "g.niveau = :niveau";
+            $params[':niveau'] = $filters['niveau'];
+        }
+
+        $sql = "SELECT u.id, u.nom, u.prenom, u.email, u.telephone, u.statut,
+                       g.nom AS groupe_nom, g.niveau AS groupe_niveau,
+                       (SELECT COUNT(*) FROM enfant e WHERE e.groupe_id = g.id AND e.statut = 'actif') AS nb_enfants
+                FROM user u
+                LEFT JOIN groupe g ON g.educateur_id = u.id
+                WHERE " . implode(' AND ', $where) . "
+                ORDER BY $sortCol $sortDir";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * List parents with combined search + filters + sort.
+     */
+    public function listerParentsFiltered($filters = [], $sortBy = 'nom', $sortDir = 'asc') {
+        $validSort = ['nom' => 'u.nom', 'prenom' => 'u.prenom', 'nb_enfants' => 'nb_enfants'];
+        $sortCol = $validSort[$sortBy] ?? 'u.nom';
+        $sortDir = strtolower($sortDir) === 'desc' ? 'DESC' : 'ASC';
+
+        $where = ["u.role = 'parent'"];
+        $params = [];
+
+        if (!empty($filters['q'])) {
+            $where[] = "(u.nom LIKE :q1 OR u.prenom LIKE :q2 OR u.email LIKE :q3)";
+            $kw = '%' . $filters['q'] . '%';
+            $params[':q1'] = $kw;
+            $params[':q2'] = $kw;
+            $params[':q3'] = $kw;
+        }
+        if (!empty($filters['statut']) && in_array($filters['statut'], ['actif', 'inactif', 'en_attente'])) {
+            $where[] = "u.statut = :statut";
+            $params[':statut'] = $filters['statut'];
+        }
+
+        $sql = "SELECT u.*,
+                       (SELECT GROUP_CONCAT(e.prenom SEPARATOR ', ') FROM enfant e WHERE e.parent_id = u.id AND e.statut = 'actif') AS enfants_noms,
+                       (SELECT COUNT(*) FROM enfant e WHERE e.parent_id = u.id AND e.statut = 'actif') AS nb_enfants
+                FROM user u
+                WHERE " . implode(' AND ', $where) . "
+                ORDER BY $sortCol $sortDir";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Stats aggregated over an educateurs list.
+     */
+    public function statsEducateurs($list) {
+        $total = count($list);
+        $actifs = 0; $inactifs = 0; $sansGroupe = 0; $totalEnfants = 0;
+        foreach ($list as $u) {
+            if ($u['statut'] === 'actif') $actifs++; else $inactifs++;
+            if (empty($u['groupe_nom'])) $sansGroupe++;
+            $totalEnfants += (int)($u['nb_enfants'] ?? 0);
+        }
+        return compact('total', 'actifs', 'inactifs', 'sansGroupe', 'totalEnfants');
+    }
+
+    /**
+     * Stats aggregated over a parents list.
+     */
+    public function statsParents($list) {
+        $total = count($list);
+        $actifs = 0; $enAttente = 0; $inactifs = 0; $totalEnfants = 0;
+        foreach ($list as $u) {
+            if ($u['statut'] === 'actif') $actifs++;
+            elseif ($u['statut'] === 'en_attente') $enAttente++;
+            else $inactifs++;
+            $totalEnfants += (int)($u['nb_enfants'] ?? 0);
+        }
+        return compact('total', 'actifs', 'enAttente', 'inactifs', 'totalEnfants');
+    }
+
+    /**
      * Update educateur profile.
      */
     public function updateProfil($id, $data) {
