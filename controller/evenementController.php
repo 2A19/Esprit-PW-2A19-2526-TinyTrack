@@ -4,6 +4,20 @@ require_once(__DIR__ . '/../models/evenement.php');
 
 class EvenementController {
 
+    // ✅ Méthode utilitaire pour garantir un JSON valide pour le champ avis
+    private function formatAvis(?string $avis): string {
+        if ($avis === null || trim($avis) === '') {
+            return '[]'; // Valeur par défaut JSON vide
+        }
+        // Vérifier si c'est déjà un JSON valide
+        json_decode($avis);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return $avis;
+        }
+        // Sinon encapsuler dans un tableau JSON
+        return json_encode([trim($avis)]);
+    }
+
     // afficher() — list all events
     public function afficher() {
         $sql = "SELECT * FROM evenement";
@@ -18,11 +32,11 @@ class EvenementController {
 
     // afficherParId($id) — get one event by ID
     public function afficherParId($id) {
-        $sql = "SELECT * FROM evenement WHERE id = $id";
+        $sql = "SELECT * FROM evenement WHERE id = :id";
         $db = config::getConnexion();
         $query = $db->prepare($sql);
         try {
-            $query->execute();
+            $query->execute([':id' => $id]); // ✅ Utilisation de paramètre lié (sécurisé)
             $evenement = $query->fetch();
             return $evenement;
         } catch (Exception $e) {
@@ -30,9 +44,10 @@ class EvenementController {
         }
     }
 
-    // ajouter($evenement) — insert a new event
+    // ajouter() — insert a new event
     public function ajouter(Evenement $evenement) {
-        $sql = "INSERT INTO evenement VALUES (NULL, :titre, :description, :date, :heure_debut, :heure_fin, :type, :lieu, :capacite_max, :prix, :groupe_id, :statut)";
+        $sql = "INSERT INTO evenement (titre, description, date, heure_debut, heure_fin, type, lieu, capacite_max, prix, groupe_id, statut, avis) 
+                VALUES (:titre, :description, :date, :heure_debut, :heure_fin, :type, :lieu, :capacite_max, :prix, :groupe_id, :statut, :avis)";
         $db = config::getConnexion();
         try {
             $query = $db->prepare($sql);
@@ -47,10 +62,11 @@ class EvenementController {
                 'capacite_max' => $evenement->getCapaciteMax(),
                 'prix'         => $evenement->getPrix(),
                 'groupe_id'    => $evenement->getGroupeId(),
-                'statut'       => $evenement->getStatut()
+                'statut'       => $evenement->getStatut(),
+                'avis'         => $this->formatAvis($evenement->getAvis()) // ✅ FIX
             ]);
         } catch (Exception $e) {
-            echo 'Erreur: ' . $e->getMessage();
+            die('Erreur SQL : ' . $e->getMessage());
         }
     }
 
@@ -83,7 +99,8 @@ class EvenementController {
                     capacite_max = :capacite_max,
                     prix         = :prix,
                     groupe_id    = :groupe_id,
-                    statut       = :statut
+                    statut       = :statut,
+                    avis         = :avis
                 WHERE id = :id'
             );
             $query->execute([
@@ -98,7 +115,8 @@ class EvenementController {
                 'capacite_max' => $evenement->getCapaciteMax(),
                 'prix'         => $evenement->getPrix(),
                 'groupe_id'    => $evenement->getGroupeId(),
-                'statut'       => $evenement->getStatut()
+                'statut'       => $evenement->getStatut(),
+                'avis'         => $this->formatAvis($evenement->getAvis()) // ✅ FIX
             ]);
         } catch (PDOException $e) {
             echo 'Erreur: ' . $e->getMessage();
