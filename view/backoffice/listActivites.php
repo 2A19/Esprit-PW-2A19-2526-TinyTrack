@@ -36,13 +36,9 @@ include 'template/sidebar.php';
                 <div class="alert alert-success alert-dismissible fade show">
                     <button type="button" class="close" data-dismiss="alert">&times;</button>
                     <?php
-                    if ($_GET['success'] === 'add') {
-                        echo "Activité ajoutée !";
-                    } elseif ($_GET['success'] === 'edit') {
-                        echo "Activité modifiée !";
-                    } elseif ($_GET['success'] === 'delete') {
-                        echo "Activité supprimée !";
-                    }
+                    if ($_GET['success'] === 'add') echo "Activité ajoutée !";
+                    elseif ($_GET['success'] === 'edit') echo "Activité modifiée !";
+                    elseif ($_GET['success'] === 'delete') echo "Activité supprimée !";
                     ?>
                 </div>
             <?php endif; ?>
@@ -50,22 +46,12 @@ include 'template/sidebar.php';
             <div class="card card-info">
                 <div class="card-header">
                     <div class="row align-items-center">
+
                         <div class="col-md-4">
                             <div class="input-group">
-                                <input
-                                    type="text"
-                                    id="searchAct"
-                                    class="form-control"
-                                    placeholder="Rechercher..."
-                                    style="border-radius:10px 0 0 10px;"
-                                >
+                                <input type="text" id="searchAct" class="form-control" placeholder="Rechercher..." style="border-radius:10px 0 0 10px;">
                                 <div class="input-group-append">
-                                    <button
-                                        type="button"
-                                        class="btn btn-info"
-                                        id="searchActBtn"
-                                        style="border-radius:0 10px 10px 0;"
-                                    >
+                                    <button type="button" class="btn btn-info" id="searchActBtn" style="border-radius:0 10px 10px 0;">
                                         <i class="fas fa-search"></i>
                                     </button>
                                 </div>
@@ -77,10 +63,19 @@ include 'template/sidebar.php';
                         </div>
 
                         <div class="col-md-4 text-right">
-                            <a href="/ProjetRapport/tinytrack/view/backoffice/addActivite.php" class="btn btn-success">
+                            <a href="/ProjetRapport/tinytrack/view/backoffice/statistiquesActivites.php" class="btn btn-success">
+                                <i class="fas fa-chart-pie"></i> Statistique
+                            </a>
+
+                            <a href="/ProjetRapport/tinytrack/view/backoffice/expertiseActivites.php" class="btn btn-success ml-2">
+                                <i class="fas fa-brain"></i> Analyse
+                            </a>
+
+                            <a href="/ProjetRapport/tinytrack/view/backoffice/addActivite.php" class="btn btn-success ml-2">
                                 <i class="fas fa-plus-circle"></i> Ajouter
                             </a>
                         </div>
+
                     </div>
                 </div>
 
@@ -97,33 +92,30 @@ include 'template/sidebar.php';
                                 <th>Actions</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             <?php if (!empty($activites)): ?>
                                 <?php foreach ($activites as $a): ?>
                                     <tr>
-                                        <td><?php echo $a['id_activite']; ?></td>
-                                        <td>
-                                            <strong><?php echo htmlspecialchars($a['nom_activite']); ?></strong>
-                                        </td>
+                                        <td><?= $a['id_activite']; ?></td>
+                                        <td><strong><?= htmlspecialchars($a['nom_activite']); ?></strong></td>
                                         <td>
                                             <?php
                                             $description = $a['description'] ?? '';
-                                            if (strlen($description) > 60) {
-                                                echo htmlspecialchars(substr($description, 0, 60)) . '...';
-                                            } else {
-                                                echo htmlspecialchars($description);
-                                            }
+                                            echo strlen($description) > 60
+                                                ? htmlspecialchars(substr($description, 0, 60)) . '...'
+                                                : htmlspecialchars($description);
                                             ?>
                                         </td>
-                                        <td><?php echo $a['date_activite']; ?></td>
-                                        <td><?php echo substr($a['heure_activite'], 0, 5); ?></td>
-                                        <td><?php echo isset($a['id_educateur']) ? $a['id_educateur'] : '—'; ?></td>
+                                        <td><?= date('Y-m-d', strtotime($a['date_activite'])); ?></td>
+                                        <td><?= substr($a['heure_activite'], 0, 5); ?></td>
+                                        <td><?= $a['id_educateur'] ?? '—'; ?></td>
                                         <td>
-                                            <a href="/ProjetRapport/tinytrack/view/backoffice/editActivite.php?id=<?php echo $a['id_activite']; ?>" class="btn btn-sm btn-warning">
+                                            <a href="/ProjetRapport/tinytrack/view/backoffice/editActivite.php?id=<?= $a['id_activite']; ?>" class="btn btn-sm btn-warning">
                                                 <i class="fas fa-edit"></i>
                                             </a>
 
-                                            <a href="/ProjetRapport/tinytrack/view/backoffice/deleteActivite.php?id=<?php echo $a['id_activite']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cette activité ?');">
+                                            <a href="/ProjetRapport/tinytrack/view/backoffice/deleteActivite.php?id=<?= $a['id_activite']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cette activité ?');">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </td>
@@ -135,6 +127,7 @@ include 'template/sidebar.php';
                                 </tr>
                             <?php endif; ?>
                         </tbody>
+
                     </table>
                 </div>
             </div>

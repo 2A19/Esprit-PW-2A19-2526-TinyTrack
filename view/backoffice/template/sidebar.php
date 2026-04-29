@@ -16,7 +16,8 @@
     </div>
 
     <nav class="mt-2">
-      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+      <ul class="nav nav-pills nav-sidebar flex-column">
+
         <li class="nav-header">RAPPORTS</li>
 
         <li class="nav-item">
@@ -47,12 +48,36 @@
         <li class="nav-item">
           <a href="/ProjetRapport/tinytrack/view/frontoffice/listRapportsParent.php" class="nav-link">
             <i class="nav-icon fas fa-globe" style="color:#9C7CDB;"></i>
-            <p style="color:#fff;">
-              Voir FrontOffice
-              <i class="fas fa-external-link-alt right" style="font-size:0.7rem;"></i>
-            </p>
+            <p style="color:#fff;">Voir FrontOffice</p>
           </a>
         </li>
+
+        <li class="nav-header">TEMPLATES</li>
+
+        <!-- Événements -->
+        <li class="nav-item">
+          <a href="/ProjetRapport/tinytrack/view/backoffice/evenement.php" class="nav-link">
+            <i class="nav-icon fas fa-layer-group" style="color:#FF8FAB;"></i>
+            <p style="color:#fff;">Événements</p>
+          </a>
+        </li>
+
+        <!-- Réclamations -->
+        <li class="nav-item">
+          <a href="/ProjetRapport/tinytrack/view/backoffice/Reclamation.php" class="nav-link">
+            <i class="nav-icon fas fa-exclamation-triangle" style="color:#FFA726;"></i>
+            <p style="color:#fff;">Réclamations</p>
+          </a>
+        </li>
+
+        <!-- 🔥 Messages -->
+        <li class="nav-item">
+          <a href="/ProjetRapport/tinytrack/view/backoffice/message_admin.php" class="nav-link">
+            <i class="nav-icon fas fa-envelope" style="color:#5B9BD5;"></i>
+            <p style="color:#fff;">Messages</p>
+          </a>
+        </li>
+
       </ul>
     </nav>
   </div>

@@ -30,12 +30,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($contenu === '') {
         $errors[] = 'Le contenu est obligatoire.';
+    } elseif (strlen($contenu) < 5) {
+        $errors[] = 'Le contenu est trop court (min 5 caractères).';
     }
 
     if ($date === '') {
         $errors[] = 'La date est obligatoire.';
-    } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-        $errors[] = 'Le format de la date doit être AAAA-MM-JJ.';
+    } elseif (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/', $date)) {
+        $errors[] = 'Le format de la date doit être AAAA-MM-JJ HH:MM.';
+    } else {
+        date_default_timezone_set('Africa/Tunis');
+
+        $timestampSaisi = strtotime($date);
+        $timestampActuel = time();
+
+        if ($timestampSaisi === false) {
+            $errors[] = 'La date saisie est invalide.';
+        } elseif ($timestampSaisi <= $timestampActuel) {
+            $errors[] = 'La date du rapport ne peut pas être dans le passé.';
+        } else {
+            $date = date('Y-m-d H:i:s', $timestampSaisi);
+        }
     }
 
     if ($id_activite === '') {
@@ -153,8 +168,8 @@ include 'template/sidebar.php';
                                                 name="date_rapport"
                                                 id="date_rapport"
                                                 class="form-control"
-                                                placeholder="AAAA-MM-JJ"
-                                                value="<?php echo htmlspecialchars(isset($data['date_rapport']) ? $data['date_rapport'] : ''); ?>"
+                                                placeholder="AAAA-MM-JJ HH:MM"
+                                                value="<?php echo htmlspecialchars(isset($data['date_rapport']) ? date('Y-m-d H:i', strtotime($data['date_rapport'])) : ''); ?>"
                                             >
                                             <small id="err_date_rapport" class="text-danger"></small>
                                         </div>
@@ -262,15 +277,18 @@ function validerRapport() {
     if (contenu === '') {
         setErreur('contenu_rapport', 'Le contenu est obligatoire.');
         ok = false;
+    } else if (contenu.length < 5) {
+        setErreur('contenu_rapport', 'Min 5 caractères.');
+        ok = false;
     }
 
     if (date === '') {
         setErreur('date_rapport', 'La date est obligatoire.');
         ok = false;
     } else {
-        var regexDate = /^\d{4}-\d{2}-\d{2}$/;
+        var regexDate = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
         if (!regexDate.test(date)) {
-            setErreur('date_rapport', 'Format attendu : AAAA-MM-JJ.');
+            setErreur('date_rapport', 'Format attendu : AAAA-MM-JJ HH:MM.');
             ok = false;
         }
     }

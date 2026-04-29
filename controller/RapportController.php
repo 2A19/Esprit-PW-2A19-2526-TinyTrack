@@ -10,11 +10,18 @@ class RapportController {
         return $db->query($sql);
     }
 
-    public function listRapportsWithActivite() {
+    public function listRapportsWithActivite($tri = 'desc') {
+        $ordre = 'DESC';
+
+        if ($tri === 'asc') {
+            $ordre = 'ASC';
+        }
+
         $sql = "SELECT r.*, a.nom_activite
                 FROM rapport r
                 INNER JOIN activite a ON r.id_activite = a.id_activite
-                ORDER BY r.date_rapport DESC";
+                ORDER BY r.date_rapport $ordre";
+
         $db = Config::getConnexion();
         return $db->query($sql);
     }

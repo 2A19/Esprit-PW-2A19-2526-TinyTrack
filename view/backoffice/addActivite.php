@@ -30,6 +30,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Le format de l'heure doit être HH:MM.";
     }
 
+    if ($date !== '' && $heure !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) && preg_match('/^\d{2}:\d{2}$/', $heure)) {
+        date_default_timezone_set('Africa/Tunis');
+
+        $timestampActivite = strtotime($date . ' ' . $heure);
+        $timestampActuel = time();
+
+        if ($timestampActivite === false) {
+            $errors[] = "La date ou l'heure de l'activité est invalide.";
+        } elseif ($timestampActivite <= $timestampActuel) {
+            $errors[] = "La date et l'heure de l'activité doivent être supérieures à la date actuelle.";
+        }
+    }
+
     if ($educateur !== '' && !ctype_digit($educateur)) {
         $errors[] = "L'identifiant de l'éducateur doit être numérique.";
     }

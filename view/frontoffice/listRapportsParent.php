@@ -24,11 +24,26 @@ include 'template/header.php';
               <h5 style="font-family:'Fredoka One',cursive;margin-bottom:0;"><?= htmlspecialchars($r['nom_activite'] ?? 'Activité') ?></h5>
               <span class="badge bg-info" style="font-size:0.7rem;">#<?= $r['id_rapport'] ?></span>
             </div>
-            <p style="font-size:0.85rem;color:#666;margin-bottom:0.8rem;"><?= htmlspecialchars(substr($r['contenu_rapport'], 0, 120)) ?><?= strlen($r['contenu_rapport']) > 120 ? '...' : '' ?></p>
+
+            <p style="font-size:0.85rem;color:#666;margin-bottom:0.8rem;">
+              <?= htmlspecialchars(substr($r['contenu_rapport'], 0, 120)) ?><?= strlen($r['contenu_rapport']) > 120 ? '...' : '' ?>
+            </p>
+
             <div class="medical-box">
               <p><i class="fas fa-calendar" style="color:var(--kider-blue);"></i> <strong>Date :</strong> <?= $r['date_rapport'] ?></p>
               <p class="mb-0"><i class="fas fa-user-tie" style="color:var(--kider-green);"></i> <strong>Éducateur ID :</strong> <?= $r['id_educateur'] ?? '—' ?></p>
             </div>
+
+            <div class="mt-3 text-center">
+              <a 
+                href="/ProjetRapport/tinytrack/view/frontoffice/exportRapportPdf.php?id=<?= $r['id_rapport'] ?>" 
+                class="btn btn-danger btn-sm"
+                style="border-radius:25px;padding:0.45rem 1.2rem;"
+              >
+                <i class="fas fa-file-pdf"></i> Exporter PDF
+              </a>
+            </div>
+
           </div>
         </div>
       <?php endforeach; ?>

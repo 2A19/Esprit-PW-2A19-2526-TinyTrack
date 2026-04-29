@@ -68,5 +68,31 @@ class ActiviteController {
             'id_educateur' => $activite->getIdEducateur()
         ]);
     }
+
+    public function statistiquesActivitesParEducateur() {
+        $sql = "SELECT id_educateur, COUNT(*) AS total_activites
+                FROM activite
+                GROUP BY id_educateur
+                ORDER BY total_activites DESC";
+
+        $db = Config::getConnexion();
+        $query = $db->prepare($sql);
+        $query->execute();
+
+        return $query->fetchAll();
+    }
+
+    public function expertiseEducateurs() {
+        $sql = "SELECT id_educateur, nom_activite, COUNT(*) AS total
+                FROM activite
+                GROUP BY id_educateur, nom_activite
+                ORDER BY id_educateur ASC, total DESC";
+
+        $db = Config::getConnexion();
+        $query = $db->prepare($sql);
+        $query->execute();
+
+        return $query->fetchAll();
+    }
 }
 ?>
