@@ -116,7 +116,7 @@ class EvenementController {
                 'prix'         => $evenement->getPrix(),
                 'groupe_id'    => $evenement->getGroupeId(),
                 'statut'       => $evenement->getStatut(),
-                'avis'         => $this->formatAvis($evenement->getAvis()) // ✅ FIX
+                'avis'         => $this->formatAvis($evenement->getAvis()) 
             ]);
         } catch (PDOException $e) {
             echo 'Erreur: ' . $e->getMessage();

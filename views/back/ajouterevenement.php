@@ -36,7 +36,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validations
     if ($titre === '')       $errors['titre'] = 'Le titre est obligatoire.';
-    if ($date === '')        $errors['date'] = 'La date est obligatoire.';
+    if ($date === '') {
+    $errors['date'] = 'La date est obligatoire.';
+} elseif (new DateTime($date) <= new DateTime('today')) {
+    $errors['date'] = 'La date doit être dans le futur.';
+}
+
     if ($heure_debut === '') $errors['heure_debut'] = "L'heure de début est obligatoire.";
     if ($heure_fin === '')   $errors['heure_fin'] = "L'heure de fin est obligatoire.";
     if ($heure_debut && $heure_fin && $heure_fin <= $heure_debut)
