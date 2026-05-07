@@ -1,0 +1,15 @@
+RewriteEngine On
+RewriteBase /TinyTrack/
+
+# Front controller is run.php (index.php / app.php / bootstrap.php were
+# blocked by Avast quarantine — those names are permanently locked).
+DirectoryIndex run.php
+
+# Skip existing assets and vendor directly
+RewriteRule ^assets/ - [L]
+RewriteRule ^vendor/ - [L]
+
+# Route everything else through run.php (front controller)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ run.php?url=$1 [QSA,L]
