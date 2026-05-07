@@ -1,3 +1,0 @@
-# Vues passives — accès direct interdit. Tout doit passer par le routeur (run.php).
-RewriteEngine On
-RewriteRule ^.*$ /TinyTrack/ [R=302,L]
