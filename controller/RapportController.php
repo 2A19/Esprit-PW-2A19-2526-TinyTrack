@@ -27,13 +27,14 @@ class RapportController {
     }
 
     public function addRapport($rapport) {
-        $sql = "INSERT INTO rapport (contenu_rapport, date_rapport, id_activite, id_educateur)
-                VALUES (:contenu_rapport, :date_rapport, :id_activite, :id_educateur)";
+        $sql = "INSERT INTO rapport (contenu_rapport, date_rapport, id_enfant, id_activite, id_educateur)
+                VALUES (:contenu_rapport, :date_rapport, :id_enfant, :id_activite, :id_educateur)";
         $db = Config::getConnexion();
         $query = $db->prepare($sql);
         $query->execute([
             'contenu_rapport' => $rapport->getContenuRapport(),
             'date_rapport' => $rapport->getDateRapport(),
+            'id_enfant' => $rapport->getIdEnfant(),
             'id_activite' => $rapport->getIdActivite(),
             'id_educateur' => $rapport->getIdEducateur()
         ]);
@@ -58,6 +59,7 @@ class RapportController {
         $sql = "UPDATE rapport SET
                 contenu_rapport = :contenu_rapport,
                 date_rapport = :date_rapport,
+                id_enfant = :id_enfant,
                 id_activite = :id_activite,
                 id_educateur = :id_educateur
                 WHERE id_rapport = :id";
@@ -67,6 +69,7 @@ class RapportController {
             'id' => $id,
             'contenu_rapport' => $rapport->getContenuRapport(),
             'date_rapport' => $rapport->getDateRapport(),
+            'id_enfant' => $rapport->getIdEnfant(),
             'id_activite' => $rapport->getIdActivite(),
             'id_educateur' => $rapport->getIdEducateur()
         ]);

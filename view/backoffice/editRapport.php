@@ -25,6 +25,7 @@ if (!$data) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $contenu = isset($_POST['contenu_rapport']) ? trim($_POST['contenu_rapport']) : '';
     $date = isset($_POST['date_rapport']) ? trim($_POST['date_rapport']) : '';
+    $id_enfant = isset($_POST['id_enfant']) ? trim($_POST['id_enfant']) : '';
     $id_activite = isset($_POST['id_activite']) ? trim($_POST['id_activite']) : '';
     $id_educateur = isset($_POST['id_educateur']) ? trim($_POST['id_educateur']) : '';
 
@@ -51,6 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $date = date('Y-m-d H:i:s', $timestampSaisi);
         }
+    }
+
+    if ($id_enfant === '') {
+        $errors[] = "L'identifiant de l'enfant est obligatoire.";
+    } elseif (!ctype_digit($id_enfant)) {
+        $errors[] = "L'identifiant de l'enfant doit être numérique.";
     }
 
     if ($id_activite === '') {
@@ -80,6 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id,
             $contenu,
             $date,
+            (int)$id_enfant,
             (int)$id_activite,
             $id_educateur !== '' ? (int)$id_educateur : null
         );
@@ -158,7 +166,7 @@ include 'template/sidebar.php';
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="date_rapport">
                                                 Date <span class="text-danger">*</span>
@@ -175,7 +183,24 @@ include 'template/sidebar.php';
                                         </div>
                                     </div>
 
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="id_enfant">
+                                                ID Enfant <span class="text-danger">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="id_enfant"
+                                                id="id_enfant"
+                                                class="form-control"
+                                                placeholder="Ex: 1"
+                                                value="<?php echo htmlspecialchars(isset($data['id_enfant']) ? $data['id_enfant'] : ''); ?>"
+                                            >
+                                            <small id="err_id_enfant" class="text-danger"></small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="id_activite">
                                                 Activité <span class="text-danger">*</span>
@@ -195,7 +220,7 @@ include 'template/sidebar.php';
                                         </div>
                                     </div>
 
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="id_educateur">Éducateur ID</label>
                                             <input
@@ -266,11 +291,13 @@ function validerRapport() {
 
     clearErreur('contenu_rapport');
     clearErreur('date_rapport');
+    clearErreur('id_enfant');
     clearErreur('id_activite');
     clearErreur('id_educateur');
 
     var contenu = document.getElementById('contenu_rapport').value.replace(/^\s+|\s+$/g, '');
     var date = document.getElementById('date_rapport').value.replace(/^\s+|\s+$/g, '');
+    var idEnfant = document.getElementById('id_enfant').value.replace(/^\s+|\s+$/g, '');
     var idActivite = document.getElementById('id_activite').value.replace(/^\s+|\s+$/g, '');
     var idEducateur = document.getElementById('id_educateur').value.replace(/^\s+|\s+$/g, '');
 
@@ -289,6 +316,17 @@ function validerRapport() {
         var regexDate = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
         if (!regexDate.test(date)) {
             setErreur('date_rapport', 'Format attendu : AAAA-MM-JJ HH:MM.');
+            ok = false;
+        }
+    }
+
+    if (idEnfant === '') {
+        setErreur('id_enfant', "L'identifiant de l'enfant est obligatoire.");
+        ok = false;
+    } else {
+        var regexEnfant = /^[0-9]+$/;
+        if (!regexEnfant.test(idEnfant)) {
+            setErreur('id_enfant', "L'identifiant de l'enfant doit être numérique.");
             ok = false;
         }
     }

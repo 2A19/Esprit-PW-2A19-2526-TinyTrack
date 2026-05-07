@@ -165,6 +165,7 @@ if (!$rapport) {
 
     <div class="info-box">
         <p><strong>Numéro du rapport :</strong> #<?= htmlspecialchars($rapport['id_rapport']) ?></p>
+        <p><strong>ID Enfant :</strong> <?= htmlspecialchars($rapport['id_enfant'] ?? '—') ?></p>
         <p><strong>Activité :</strong> <?= htmlspecialchars($rapport['nom_activite'] ?? '—') ?></p>
         <p><strong>Date :</strong> <?= htmlspecialchars($rapport['date_rapport']) ?></p>
         <p><strong>Éducateur ID :</strong> <?= htmlspecialchars($rapport['id_educateur'] ?? '—') ?></p>

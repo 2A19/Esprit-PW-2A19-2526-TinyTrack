@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $contenu = trim($_POST['contenu_rapport'] ?? '');
     $date = trim($_POST['date_rapport'] ?? '');
+    $id_enfant = trim($_POST['id_enfant'] ?? '');
     $id_activite = trim($_POST['id_activite'] ?? '');
     $id_educateur = trim($_POST['id_educateur'] ?? '');
 
@@ -40,6 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $date = $dateSaisie->format('Y-m-d H:i:s');
         }
+    }
+
+    if ($id_enfant === '') {
+        $errors[] = "L'identifiant de l'enfant est obligatoire.";
+    } elseif (!ctype_digit($id_enfant)) {
+        $errors[] = "L'identifiant de l'enfant doit être numérique.";
     }
 
     if ($id_activite === '') {
@@ -69,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             null,
             $contenu,
             $date,
+            (int)$id_enfant,
             (int)$id_activite,
             $id_educateur !== '' ? (int)$id_educateur : null
         );
@@ -125,7 +133,7 @@ include 'template/header.php';
           </div>
 
           <div class="row">
-            <div class="col-md-4 mb-3">
+            <div class="col-md-3 mb-3">
               <label style="font-weight:700;">
                 Date <span style="color:#EF5350;">*</span>
               </label>
@@ -141,7 +149,23 @@ include 'template/header.php';
               <div class="invalid-feedback" id="err_date_rapport" style="display:none;font-size:0.8rem;color:#EF5350;font-weight:700;"></div>
             </div>
 
-            <div class="col-md-4 mb-3">
+            <div class="col-md-3 mb-3">
+              <label style="font-weight:700;">
+                ID Enfant <span style="color:#EF5350;">*</span>
+              </label>
+              <input
+                type="text"
+                name="id_enfant"
+                id="id_enfant"
+                class="form-control"
+                style="border-radius:12px;border:2px solid #E8E8E8;"
+                placeholder="Ex: 1"
+                value="<?= htmlspecialchars($old['id_enfant'] ?? '') ?>"
+              >
+              <div class="invalid-feedback" id="err_id_enfant" style="display:none;font-size:0.8rem;color:#EF5350;font-weight:700;"></div>
+            </div>
+
+            <div class="col-md-3 mb-3">
               <label style="font-weight:700;">
                 Activité <span style="color:#EF5350;">*</span>
               </label>
@@ -164,7 +188,7 @@ include 'template/header.php';
               <div class="invalid-feedback" id="err_id_activite" style="display:none;font-size:0.8rem;color:#EF5350;font-weight:700;"></div>
             </div>
 
-            <div class="col-md-4 mb-3">
+            <div class="col-md-3 mb-3">
               <label style="font-weight:700;">Éducateur ID</label>
               <input
                 type="text"
@@ -227,10 +251,11 @@ function clearE(id) {
 function validerRapport() {
   var ok = true;
 
-  ['contenu_rapport', 'date_rapport', 'id_activite', 'id_educateur'].forEach(clearE);
+  ['contenu_rapport', 'date_rapport', 'id_enfant', 'id_activite', 'id_educateur'].forEach(clearE);
 
   var c = document.getElementById('contenu_rapport').value.trim();
   var d = document.getElementById('date_rapport').value.trim();
+  var enf = document.getElementById('id_enfant').value.trim();
   var a = document.getElementById('id_activite').value.trim();
   var e = document.getElementById('id_educateur').value.trim();
 
@@ -247,6 +272,14 @@ function validerRapport() {
     ok = false;
   } else if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(d)) {
     showE('date_rapport', 'Format: AAAA-MM-JJ HH:MM');
+    ok = false;
+  }
+
+  if (!enf) {
+    showE('id_enfant', 'Obligatoire');
+    ok = false;
+  } else if (!/^\d+$/.test(enf)) {
+    showE('id_enfant', 'Doit être un nombre');
     ok = false;
   }
 

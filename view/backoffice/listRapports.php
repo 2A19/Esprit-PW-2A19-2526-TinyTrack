@@ -96,7 +96,6 @@ include 'template/sidebar.php';
 
             <div class="col-md-4 text-right">
 
-              <!-- CLEAN DROPDOWN -->
               <div class="btn-group">
                 <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
                   <i class="fas fa-sort"></i> Trier par
@@ -128,6 +127,7 @@ include 'template/sidebar.php';
                 <th>#</th>
                 <th>Contenu</th>
                 <th>Activité</th>
+                <th>ID Enfant</th>
                 <th>Date</th>
                 <th>Éducateur ID</th>
                 <th>Actions</th>
@@ -140,15 +140,24 @@ include 'template/sidebar.php';
                 <td><?= $r['id_rapport'] ?></td>
                 <td><?= htmlspecialchars(substr($r['contenu_rapport'], 0, 80)) ?><?= strlen($r['contenu_rapport']) > 80 ? '...' : '' ?></td>
                 <td><span class="badge bg-info"><?= htmlspecialchars($r['nom_activite'] ?? '—') ?></span></td>
+                <td><?= $r['id_enfant'] ?? '—' ?></td>
                 <td><?= $r['date_rapport'] ?></td>
                 <td><?= $r['id_educateur'] ?? '—' ?></td>
                 <td>
+
+                  <!-- ✅ AI BUTTON ADDED -->
+                  <a href="analyseRapportIA.php?id=<?= $r['id_rapport'] ?>" class="btn btn-sm btn-info">
+                    <i class="fas fa-brain"></i>
+                  </a>
+
                   <a href="editRapport.php?id=<?= $r['id_rapport'] ?>" class="btn btn-sm btn-warning">
                     <i class="fas fa-edit"></i>
                   </a>
+
                   <a href="deleteRapport.php?id=<?= $r['id_rapport'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer ?')">
                     <i class="fas fa-trash"></i>
                   </a>
+
                 </td>
               </tr>
               <?php endforeach; ?>
