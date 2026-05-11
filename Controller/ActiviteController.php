@@ -1,110 +1,102 @@
 <?php
-require_once __DIR__ . '/../Model/Activite.php';
+/**
+ * Module : Gestion Rapport
+ * @author Mohamed Fadhlaoui <fadhlaoui1212@gmail.com>
+ */
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../model/Activite.php';
 
-class ActiviteController extends Controller {
+class ActiviteController {
 
-    private Activite $model;
-
-    public function __construct() {
-        $this->model = new Activite();
+    public function listActivites() {
+        $sql = "SELECT * FROM activite";
+        $db = Config::getConnexion();
+        return $db->query($sql);
     }
 
-    // GET /activites
-    public function index(): void {
-        $this->requireAuth();
-        $this->render('BackOffice/activites/listActivites', [
-            'activites' => $this->model->lister(),
-            'msg'       => $_GET['success'] ?? null,
+    public function listActivitesByEducateur($id_educateur) {
+        $sql = "SELECT * FROM activite WHERE id_educateur = :id_educateur";
+        $db = Config::getConnexion();
+        $query = $db->prepare($sql);
+        $query->execute([
+            'id_educateur' => $id_educateur
+        ]);
+        return $query->fetchAll();
+    }
+
+    public function addActivite($activite) {
+        $sql = "INSERT INTO activite (nom_activite, description, date_activite, heure_activite, id_educateur)
+                VALUES (:nom_activite, :description, :date_activite, :heure_activite, :id_educateur)";
+        $db = Config::getConnexion();
+        $query = $db->prepare($sql);
+        $query->execute([
+            'nom_activite' => $activite->getNomActivite(),
+            'description' => $activite->getDescription(),
+            'date_activite' => $activite->getDateActivite(),
+            'heure_activite' => $activite->getHeureActivite(),
+            'id_educateur' => $activite->getIdEducateur()
         ]);
     }
 
-    // GET|POST /activites/add
-    public function add(): void {
-        $this->requireAuth();
-        $errors = [];
-        $old = [];
+    public function deleteActivite($id) {
+        $sql = "DELETE FROM activite WHERE id_activite = :id";
+        $db = Config::getConnexion();
+        $query = $db->prepare($sql);
+        $query->execute(['id' => $id]);
+    }
 
-        if ($this->isPost()) {
-            $errors = $this->validate($_POST);
-            if (empty($errors)) {
-                $this->buildActivite($_POST)->ajouter();
-                $this->redirect('/activites?success=add');
-            }
-            $old = $_POST;
-        }
+    public function showActivite($id) {
+        $sql = "SELECT * FROM activite WHERE id_activite = :id";
+        $db = Config::getConnexion();
+        $query = $db->prepare($sql);
+        $query->execute(['id' => $id]);
+        return $query->fetch();
+    }
 
-        $this->render('BackOffice/activites/addActivite', [
-            'errors' => $errors,
-            'old'    => $old,
+    public function updateActivite($activite, $id) {
+        $sql = "UPDATE activite SET
+                nom_activite = :nom_activite,
+                description = :description,
+                date_activite = :date_activite,
+                heure_activite = :heure_activite,
+                id_educateur = :id_educateur
+                WHERE id_activite = :id";
+        $db = Config::getConnexion();
+        $query = $db->prepare($sql);
+        $query->execute([
+            'id' => $id,
+            'nom_activite' => $activite->getNomActivite(),
+            'description' => $activite->getDescription(),
+            'date_activite' => $activite->getDateActivite(),
+            'heure_activite' => $activite->getHeureActivite(),
+            'id_educateur' => $activite->getIdEducateur()
         ]);
     }
 
-    // GET|POST /activites/edit/{id}
-    public function edit($id): void {
-        $this->requireAuth();
-        $data = $this->model->afficherParId($id);
-        if (!$data) $this->redirect('/activites');
+    public function statistiquesActivitesParEducateur() {
+        $sql = "SELECT id_educateur, COUNT(*) AS total_activites
+                FROM activite
+                GROUP BY id_educateur
+                ORDER BY total_activites DESC";
 
-        $errors = [];
+        $db = Config::getConnexion();
+        $query = $db->prepare($sql);
+        $query->execute();
 
-        if ($this->isPost()) {
-            $errors = $this->validate($_POST);
-            if (empty($errors)) {
-                $this->buildActivite($_POST)->modifier($id);
-                $this->redirect('/activites?success=edit');
-            }
-            $data = array_merge($data, $_POST);
-        }
-
-        $this->render('BackOffice/activites/editActivite', [
-            'data'   => $data,
-            'errors' => $errors,
-        ]);
+        return $query->fetchAll();
     }
 
-    // POST /activites/delete/{id}
-    public function delete($id): void {
-        $this->requireAuth();
-        $this->model->supprimer($id);
-        $this->redirect('/activites?success=delete');
-    }
+    public function expertiseEducateurs() {
+        $sql = "SELECT id_educateur, nom_activite, COUNT(*) AS total
+                FROM activite
+                GROUP BY id_educateur, nom_activite
+                ORDER BY id_educateur ASC, total DESC";
 
-    // GET /activites/statistiques
-    public function statistiques(): void {
-        $this->requireAuth();
-        $this->render('BackOffice/activites/statistiquesActivites', [
-            'stats' => $this->model->statistiquesParEducateur(),
-        ]);
-    }
+        $db = Config::getConnexion();
+        $query = $db->prepare($sql);
+        $query->execute();
 
-    // GET /activites/expertise
-    public function expertise(): void {
-        $this->requireAuth();
-        $this->render('BackOffice/activites/expertiseActivites', [
-            'expertises' => $this->model->expertiseParEducateur(),
-        ]);
-    }
-
-    // ---------- helpers ----------
-
-    private function buildActivite(array $data): Activite {
-        return new Activite(
-            null,
-            trim($data['nom_activite'] ?? ''),
-            trim($data['description'] ?? ''),
-            trim($data['date_activite'] ?? ''),
-            trim($data['heure_activite'] ?? ''),
-            !empty($data['id_educateur']) ? (int)$data['id_educateur'] : null
-        );
-    }
-
-    private function validate(array $data): array {
-        $errors = [];
-        if (trim($data['nom_activite'] ?? '') === '') $errors[] = "Le nom est obligatoire.";
-        if (trim($data['date_activite'] ?? '') === '') $errors[] = "La date est obligatoire.";
-        elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['date_activite'])) $errors[] = "Date invalide (AAAA-MM-JJ).";
-        if (trim($data['heure_activite'] ?? '') === '') $errors[] = "L'heure est obligatoire.";
-        elseif (!preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $data['heure_activite'])) $errors[] = "Heure invalide (HH:MM).";
-        return $errors;
+        return $query->fetchAll();
     }
 }
+?>
