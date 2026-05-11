@@ -169,12 +169,12 @@ http://localhost/TinyTrack
 
 | Membre | Module | Entites (avec jointure) |
 |--------|--------|-------------------------|
-| Belhaj Mabrouk Eya | Gestion des enfants & inscriptions | Enfant ↔ DossierMedical |
-| Ajili Rayen | Gestion des presences & justificatifs | Presence ↔ Justificatif |
-| Fadhlaoui Mohamed | Journal de bord quotidien | RapportJournalier ↔ Activite |
+| Belhaj Mabrouk Eya | Gestion user | User ↔ PasswordReset |
+| Ajili Rayen | Gestion evenements | Evenement ↔ Reservation |
+| Fadhlaoui Mohamed | Gestion rapport | Rapport ↔ Activite |
 | Rajhi Amen Allah | Communication parents | Message ↔ Notification |
-| Ben Khalifa Youssef | Gestion du personnel | Employe ↔ Planning |
-| Ben Slimene Mahdi | Facturation & Dashboard | Facture ↔ Paiement |
+| Ben Khalifa Youssef | Inscription enfant | Enfant ↔ DossierMedical |
+| Ben Slimene Mahdi | Gestion reclamation | Reclamation ↔ Reponse |
 
 ---
 
