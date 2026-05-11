@@ -1,7 +1,20 @@
 <?php
-// Vue passive — données injectées par RapportController::activitesEducateur($id)
-// Variables : $activites, $id_educateur
-include __DIR__ . '/../template/header.php';
+/**
+ * Module : Gestion Rapport
+ * @author Mohamed Fadhlaoui <fadhlaoui1212@gmail.com>
+ */
+require_once '../../controller/ActiviteController.php';
+$controller = new ActiviteController();
+$activites = [];
+
+if (isset($_GET['id_educateur']) && is_numeric($_GET['id_educateur']) && $_GET['id_educateur'] > 0) {
+    $id_educateur = $_GET['id_educateur'];
+    $activites = $controller->listActivitesByEducateur($id_educateur);
+} else {
+    $id_educateur = null;
+}
+
+include 'template/header.php';
 ?>
 
 <div class="container py-5">
@@ -48,4 +61,4 @@ include __DIR__ . '/../template/header.php';
   <?php endif; ?>
 </div>
 
-<?php include __DIR__ . '/../template/footer.php'; ?>
+<?php include 'template/footer.php'; ?>
