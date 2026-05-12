@@ -1,9 +1,10 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Rapport
  * @author Mohamed Fadhlaoui <fadhlaoui1212@gmail.com>
  */
-require_once '../../controller/RapportController.php';
+require_once __DIR__ . '/../../../Controller/RapportController.php';
 
 $controller = new RapportController();
 
@@ -15,7 +16,7 @@ if ($tri !== 'asc' && $tri !== 'desc') {
 
 $rapports = $controller->listRapportsWithActivite($tri)->fetchAll();
 
-include 'template/header.php';
+include __DIR__ . '/../template/header.php';
 ?>
 
 <style>
@@ -56,8 +57,8 @@ include 'template/header.php';
 
 <div class="container py-5">
   <div class="text-center mb-5">
-    <img src="/ProjetRapport/tinytrack/assets/images/logo.png" alt="TinyTrack" style="height:70px;margin-bottom:15px;">
     <h2 class="section-title"><i class="fas fa-book"></i> Rapports Journaliers</h2>
+    <div class="rainbow-divider"></div>
     <p class="text-muted mt-3">Consultez les rapports quotidiens de vos enfants</p>
 
     <div class="mt-3">
@@ -103,7 +104,7 @@ include 'template/header.php';
 
             <div class="mt-3 text-center">
               <a 
-                href="/ProjetRapport/tinytrack/view/frontoffice/exportRapportPdf.php?id=<?= $r['id_rapport'] ?>" 
+                href="/TinyTrack/View/FrontOffice/rapports/exportRapportPdf.php?id=<?= $r['id_rapport'] ?>" 
                 class="btn btn-danger btn-sm"
                 style="border-radius:25px;padding:0.45rem 1.2rem;"
               >
@@ -141,4 +142,4 @@ document.addEventListener('click', function(event) {
 });
 </script>
 
-<?php include 'template/footer.php'; ?>
+<?php include __DIR__ . '/../template/footer.php'; ?>

@@ -8,6 +8,39 @@ require_once __DIR__ . '/../model/Activite.php';
 
 class ActiviteController {
 
+    /** Router-compatible adapter methods — delegate to existing view files. */
+    public function index() {
+        if (!isset($_SESSION['user_id'])) { header('Location: /TinyTrack/login'); exit; }
+        header('Location: /TinyTrack/View/BackOffice/activites/listActivites.php');
+        exit;
+    }
+    public function add() {
+        if (!isset($_SESSION['user_id'])) { header('Location: /TinyTrack/login'); exit; }
+        header('Location: /TinyTrack/View/BackOffice/activites/addActivite.php');
+        exit;
+    }
+    public function edit($id) {
+        if (!isset($_SESSION['user_id'])) { header('Location: /TinyTrack/login'); exit; }
+        header('Location: /TinyTrack/View/BackOffice/activites/editActivite.php?id=' . (int)$id);
+        exit;
+    }
+    public function delete($id) {
+        if (!isset($_SESSION['user_id'])) { header('Location: /TinyTrack/login'); exit; }
+        $this->deleteActivite((int)$id);
+        header('Location: /TinyTrack/View/BackOffice/activites/listActivites.php');
+        exit;
+    }
+    public function statistiques() {
+        if (!isset($_SESSION['user_id'])) { header('Location: /TinyTrack/login'); exit; }
+        header('Location: /TinyTrack/View/BackOffice/activites/statistiquesActivites.php');
+        exit;
+    }
+    public function expertise() {
+        if (!isset($_SESSION['user_id'])) { header('Location: /TinyTrack/login'); exit; }
+        header('Location: /TinyTrack/View/BackOffice/activites/expertiseActivites.php');
+        exit;
+    }
+
     public function listActivites() {
         $sql = "SELECT * FROM activite";
         $db = Config::getConnexion();

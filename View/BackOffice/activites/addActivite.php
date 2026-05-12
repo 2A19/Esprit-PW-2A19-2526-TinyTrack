@@ -1,10 +1,11 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Rapport
  * @author Mohamed Fadhlaoui <fadhlaoui1212@gmail.com>
  */
-require_once '../../controller/ActiviteController.php';
-require_once '../../model/Activite.php';
+require_once __DIR__ . '/../../../Controller/ActiviteController.php';
+require_once __DIR__ . '/../../../Model/Activite.php';
 
 $errors = array();
 $old = array();
@@ -64,13 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $controller = new ActiviteController();
         $controller->addActivite($activite);
 
-        header('Location: /ProjetRapport/tinytrack/view/backoffice/listActivites.php?success=add');
+        header('Location: /TinyTrack/View/BackOffice/activites/listActivites.php?success=add');
         exit;
     }
 }
 
-include 'template/header.php';
-include 'template/sidebar.php';
+include __DIR__ . '/../template/header.php';
+include __DIR__ . '/../template/sidebar.php';
 ?>
 
 <div class="content-wrapper">
@@ -85,7 +86,7 @@ include 'template/sidebar.php';
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item">
-                            <a href="/ProjetRapport/tinytrack/view/backoffice/listActivites.php">Activités</a>
+                            <a href="/TinyTrack/View/BackOffice/activites/listActivites.php">Activités</a>
                         </li>
                         <li class="breadcrumb-item active">Ajouter</li>
                     </ol>
@@ -203,7 +204,7 @@ include 'template/sidebar.php';
                                     <i class="fas fa-save"></i> Enregistrer
                                 </button>
 
-                                <a href="/ProjetRapport/tinytrack/view/backoffice/listActivites.php" class="btn btn-default float-right">
+                                <a href="/TinyTrack/View/BackOffice/activites/listActivites.php" class="btn btn-default float-right">
                                     <i class="fas fa-arrow-left"></i> Retour
                                 </a>
                             </div>
@@ -217,7 +218,7 @@ include 'template/sidebar.php';
     </section>
 </div>
 
-<?php include 'template/footer.php'; ?>
+<?php include __DIR__ . '/../template/footer.php'; ?>
 
 <script>
 function setErreur(id, message) {

@@ -400,13 +400,17 @@ function navActive(array $patterns, $currentPath) {
         <li class="nav-item"><a class="nav-link <?= navActive(['/educateurs'],  $__navPath) ? 'active' : '' ?>" href="/TinyTrack/educateurs"><i class="fas fa-chalkboard-teacher"></i> Éducateurs</a></li>
         <li class="nav-item"><a class="nav-link <?= navActive(['/evenements'],  $__navPath) ? 'active' : '' ?>" href="/TinyTrack/evenements"><i class="fas fa-calendar-alt"></i> Événements</a></li>
         <li class="nav-item"><a class="nav-link <?= navActive(['/rapports'],    $__navPath) ? 'active' : '' ?>" href="/TinyTrack/rapports"><i class="fas fa-book"></i> Rapports</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['/activites'],   $__navPath) ? 'active' : '' ?>" href="/TinyTrack/activites"><i class="fas fa-puzzle-piece"></i> Activités</a></li>
         <li class="nav-item"><a class="nav-link <?= navActive(['/approbation'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/approbation"><i class="fas fa-hourglass-half"></i> En attente</a></li>
         <li class="nav-item"><a class="nav-link <?= navActive(['/parents'],     $__navPath) ? 'active' : '' ?>" href="/TinyTrack/parents"><i class="fas fa-users"></i> Parents</a></li>
         <li class="nav-item ms-2"><a class="nav-link nav-link-profil <?= navActive(['/profil'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/profil" title="Mon profil"><i class="fas fa-user-circle"></i></a></li>
         <?php elseif ($_SESSION['user_role'] === 'educateur'): ?>
-        <!-- Éducateur : tableau de bord + événements -->
+        <!-- Éducateur : tableau de bord + événements + rapports + activités -->
         <li class="nav-item"><a class="nav-link <?= navActive(['/dashboard_educateur.php'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/dashboard/educateur"><i class="fas fa-th-large"></i> Tableau de bord</a></li>
         <li class="nav-item"><a class="nav-link <?= navActive(['/evenements/'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/evenements/parent"><i class="fas fa-calendar-alt"></i> Événements</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['mesrapports','editrapport','deleterapport','analyserapport','addrapport'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/rapports/mesRapports.php"><i class="fas fa-book"></i> Mes rapports</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['listactiviteseducateur','/activites'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/rapports/listActivitesEducateur.php?id_educateur=<?= (int)$_SESSION['user_id'] ?>"><i class="fas fa-puzzle-piece"></i> Mes activités</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['/profil'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/educateurs/profil"><i class="fas fa-user-circle"></i> Mon profil</a></li>
         <?php else: ?>
         <!-- Parent: menu complet -->
         <li class="nav-item"><a class="nav-link <?= navActive(['/enfants/'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/mes-enfants"><i class="fas fa-child"></i> Enfants</a></li>

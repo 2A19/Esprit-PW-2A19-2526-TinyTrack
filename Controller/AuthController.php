@@ -412,7 +412,7 @@ class AuthController extends Controller {
      * - Compares against every enrolled user's stored descriptor (Euclidean distance).
      * - The closest match wins if its distance is below FACE_MATCH_THRESHOLD.
      */
-    const FACE_MATCH_THRESHOLD = 0.55;
+    const FACE_MATCH_THRESHOLD = 0.45;
 
     public function loginWithFace($descriptor) {
         if (!is_array($descriptor) || count($descriptor) !== 128) {
@@ -445,7 +445,11 @@ class AuthController extends Controller {
         }
 
         if (!$bestUser || $bestDistance > self::FACE_MATCH_THRESHOLD) {
-            return ['success' => false, 'error' => "Aucun visage reconnu. Essayez avec votre mot de passe."];
+            return [
+                'success' => false,
+                'error'   => "Aucun visage reconnu (distance " . number_format($bestDistance, 3) . " > seuil " . self::FACE_MATCH_THRESHOLD . "). Essayez avec votre mot de passe.",
+                'distance' => $bestDistance,
+            ];
         }
         if ($bestUser['statut'] !== 'actif') {
             return ['success' => false, 'error' => "Votre compte n'est pas actif."];

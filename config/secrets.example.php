@@ -19,3 +19,7 @@ if (!defined('GOOGLE_CLIENT_ID')) define('GOOGLE_CLIENT_ID', 'XXXXXXXXXXXX-xxxxx
 
 // === Application base URL (utilise dans les liens email) ===
 if (!defined('APP_BASE_URL')) define('APP_BASE_URL', 'http://localhost/TinyTrack');
+
+// === Groq API (LLM pour analyse IA des rapports) ===
+// Obtenez votre cle gratuite sur : https://console.groq.com/keys
+if (!defined('GROQ_API_KEY')) define('GROQ_API_KEY', 'gsk_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');

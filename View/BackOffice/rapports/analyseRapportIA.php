@@ -1,9 +1,10 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Rapport
  * @author Mohamed Fadhlaoui <fadhlaoui1212@gmail.com>
  */
-require_once '../../controller/RapportController.php';
+require_once __DIR__ . '/../../../Controller/RapportController.php';
 
 if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) {
     header('Location: listRapports.php');
@@ -29,7 +30,8 @@ if (!$rapport) {
     exit;
 }
 
-$apiKey = getenv('GROQ_API_KEY');
+require_once __DIR__ . '/../../../config/secrets.php';
+$apiKey = defined('GROQ_API_KEY') ? GROQ_API_KEY : getenv('GROQ_API_KEY');
 
 $analyse = null;
 $error = null;
@@ -123,8 +125,8 @@ if ($analyse) {
     }
 }
 
-include 'template/header.php';
-include 'template/sidebar.php';
+include __DIR__ . '/../template/header.php';
+include __DIR__ . '/../template/sidebar.php';
 ?>
 
 <style>
@@ -534,4 +536,4 @@ if ($analyse) {
     </section>
 </div>
 
-<?php include 'template/footer.php'; ?>
+<?php include __DIR__ . '/../template/footer.php'; ?>

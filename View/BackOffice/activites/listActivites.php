@@ -1,15 +1,16 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Rapport
  * @author Mohamed Fadhlaoui <fadhlaoui1212@gmail.com>
  */
-require_once '../../controller/ActiviteController.php';
+require_once __DIR__ . '/../../../Controller/ActiviteController.php';
 
 $controller = new ActiviteController();
 $activites = $controller->listActivites()->fetchAll();
 
-include 'template/header.php';
-include 'template/sidebar.php';
+include __DIR__ . '/../template/header.php';
+include __DIR__ . '/../template/sidebar.php';
 ?>
 
 <div class="content-wrapper">
@@ -24,7 +25,7 @@ include 'template/sidebar.php';
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item">
-                            <a href="/ProjetRapport/tinytrack/view/backoffice/listRapports.php">Dashboard</a>
+                            <a href="/TinyTrack/View/BackOffice/rapports/listRapports.php">Dashboard</a>
                         </li>
                         <li class="breadcrumb-item active">Activités</li>
                     </ol>
@@ -67,15 +68,15 @@ include 'template/sidebar.php';
                         </div>
 
                         <div class="col-md-4 text-right">
-                            <a href="/ProjetRapport/tinytrack/view/backoffice/statistiquesActivites.php" class="btn btn-success">
+                            <a href="/TinyTrack/View/BackOffice/activites/statistiquesActivites.php" class="btn btn-success">
                                 <i class="fas fa-chart-pie"></i> Statistique
                             </a>
 
-                            <a href="/ProjetRapport/tinytrack/view/backoffice/expertiseActivites.php" class="btn btn-success ml-2">
+                            <a href="/TinyTrack/View/BackOffice/activites/expertiseActivites.php" class="btn btn-success ml-2">
                                 <i class="fas fa-brain"></i> Analyse
                             </a>
 
-                            <a href="/ProjetRapport/tinytrack/view/backoffice/addActivite.php" class="btn btn-success ml-2">
+                            <a href="/TinyTrack/View/BackOffice/activites/addActivite.php" class="btn btn-success ml-2">
                                 <i class="fas fa-plus-circle"></i> Ajouter
                             </a>
                         </div>
@@ -115,11 +116,11 @@ include 'template/sidebar.php';
                                         <td><?= substr($a['heure_activite'], 0, 5); ?></td>
                                         <td><?= $a['id_educateur'] ?? '—'; ?></td>
                                         <td>
-                                            <a href="/ProjetRapport/tinytrack/view/backoffice/editActivite.php?id=<?= $a['id_activite']; ?>" class="btn btn-sm btn-warning">
+                                            <a href="/TinyTrack/View/BackOffice/activites/editActivite.php?id=<?= $a['id_activite']; ?>" class="btn btn-sm btn-warning">
                                                 <i class="fas fa-edit"></i>
                                             </a>
 
-                                            <a href="/ProjetRapport/tinytrack/view/backoffice/deleteActivite.php?id=<?= $a['id_activite']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cette activité ?');">
+                                            <a href="/TinyTrack/View/BackOffice/activites/deleteActivite.php?id=<?= $a['id_activite']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cette activité ?');">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </td>
@@ -140,7 +141,7 @@ include 'template/sidebar.php';
     </section>
 </div>
 
-<?php include 'template/footer.php'; ?>
+<?php include __DIR__ . '/../template/footer.php'; ?>
 
 <script>
 $(document).ready(function () {

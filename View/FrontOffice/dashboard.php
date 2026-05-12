@@ -89,6 +89,15 @@ include __DIR__ . '/template/header.php';
       </a>
     </div>
 
+    <!-- Activités -->
+    <div class="col-md-4 col-sm-6 col-12">
+      <a href="/TinyTrack/activites" class="tile-kids tile-sun">
+        <div class="tile-emoji">&#x1F3A8;</div>
+        <h3 class="tile-number"><?= $totalActivites ?? '—' ?></h3>
+        <p class="tile-label">Activités</p>
+      </a>
+    </div>
+
     <!-- Approbation -->
     <div class="col-md-4 col-sm-6 col-12">
       <a href="/TinyTrack/approbation" class="tile-kids <?= $pendingAccounts > 0 ? 'is-alert' : 'tile-sun' ?>">

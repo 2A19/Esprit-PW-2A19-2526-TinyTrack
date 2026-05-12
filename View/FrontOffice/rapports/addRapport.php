@@ -1,11 +1,12 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Rapport
  * @author Mohamed Fadhlaoui <fadhlaoui1212@gmail.com>
  */
-require_once '../../controller/RapportController.php';
-require_once '../../controller/ActiviteController.php';
-require_once '../../model/Rapport.php';
+require_once __DIR__ . '/../../../Controller/RapportController.php';
+require_once __DIR__ . '/../../../Controller/ActiviteController.php';
+require_once __DIR__ . '/../../../Model/Rapport.php';
 
 $errors = [];
 $old = [];
@@ -88,12 +89,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $controller = new RapportController();
         $controller->addRapport($rapport);
 
-        header('Location: /ProjetRapport/tinytrack/view/frontoffice/listRapportsParent.php?success=add');
+        header('Location: /TinyTrack/View/FrontOffice/rapports/listRapportsParent.php?success=add');
         exit;
     }
 }
 
-include 'template/header.php';
+include __DIR__ . '/../template/header.php';
 ?>
 
 <div class="container py-5">
@@ -208,7 +209,7 @@ include 'template/header.php';
           </div>
 
           <div class="d-flex justify-content-between mt-3">
-            <a href="/ProjetRapport/tinytrack/view/frontoffice/listRapportsParent.php" class="btn btn-default" style="border-radius:25px;">
+            <a href="/TinyTrack/View/FrontOffice/rapports/listRapportsParent.php" class="btn btn-default" style="border-radius:25px;">
               <i class="fas fa-arrow-left"></i> Retour
             </a>
 
@@ -222,7 +223,7 @@ include 'template/header.php';
   </div>
 </div>
 
-<?php include 'template/footer.php'; ?>
+<?php include __DIR__ . '/../template/footer.php'; ?>
 
 <script>
 function showE(id, msg) {
