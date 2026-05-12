@@ -13,7 +13,8 @@ Thumbs.db
 *~
 
 # === PHP / dependencies ===
-vendor/
+# vendor/ contient PHPMailer (utilise par MailService du module Gestion Reclamation).
+# On l'autorise pour que les coequipiers n'aient pas besoin d'installer composer.
 composer.lock
 
 # === Logs ===

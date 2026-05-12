@@ -401,6 +401,7 @@ function navActive(array $patterns, $currentPath) {
         <li class="nav-item"><a class="nav-link <?= navActive(['/evenements'],  $__navPath) ? 'active' : '' ?>" href="/TinyTrack/evenements"><i class="fas fa-calendar-alt"></i> Événements</a></li>
         <li class="nav-item"><a class="nav-link <?= navActive(['/rapports'],    $__navPath) ? 'active' : '' ?>" href="/TinyTrack/rapports"><i class="fas fa-book"></i> Rapports</a></li>
         <li class="nav-item"><a class="nav-link <?= navActive(['/activites'],   $__navPath) ? 'active' : '' ?>" href="/TinyTrack/activites"><i class="fas fa-puzzle-piece"></i> Activités</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['reclamationback','reclamationfront','reponsesback'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/BackOffice/reclamations/reclamationBack.php"><i class="fas fa-exclamation-circle"></i> Réclamations</a></li>
         <li class="nav-item"><a class="nav-link <?= navActive(['/approbation'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/approbation"><i class="fas fa-hourglass-half"></i> En attente</a></li>
         <li class="nav-item"><a class="nav-link <?= navActive(['/parents'],     $__navPath) ? 'active' : '' ?>" href="/TinyTrack/parents"><i class="fas fa-users"></i> Parents</a></li>
         <li class="nav-item ms-2"><a class="nav-link nav-link-profil <?= navActive(['/profil'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/profil" title="Mon profil"><i class="fas fa-user-circle"></i></a></li>
@@ -417,6 +418,7 @@ function navActive(array $patterns, $currentPath) {
         <li class="nav-item"><a class="nav-link <?= navActive(['/evenements/'], $__navPath) && !navActive(['/mes-reservations'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/evenements/parent"><i class="fas fa-calendar-alt"></i> Événements</a></li>
         <li class="nav-item"><a class="nav-link <?= navActive(['/mes-reservations'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/mes-reservations"><i class="fas fa-ticket-alt"></i> Mes réservations</a></li>
         <li class="nav-item"><a class="nav-link <?= navActive(['/rapports/'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/rapports/parent"><i class="fas fa-book"></i> Rapports</a></li>
+        <li class="nav-item"><a class="nav-link <?= navActive(['reclamationfront'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/reclamations/reclamationFront.php"><i class="fas fa-exclamation-circle"></i> Réclamations</a></li>
         <li class="nav-item"><a class="nav-link <?= navActive(['/messages.php'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/messages"><i class="fas fa-envelope"></i> Messages</a></li>
         <li class="nav-item"><a class="nav-link <?= navActive(['/profil.php'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/profil"><i class="fas fa-user-circle"></i> Mon profil</a></li>
         <?php endif; ?>

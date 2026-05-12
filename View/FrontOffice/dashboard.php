@@ -98,6 +98,15 @@ include __DIR__ . '/template/header.php';
       </a>
     </div>
 
+    <!-- Réclamations -->
+    <div class="col-md-4 col-sm-6 col-12">
+      <a href="/TinyTrack/View/BackOffice/reclamations/reclamationBack.php" class="tile-kids tile-rose">
+        <div class="tile-emoji">&#x1F4E2;</div>
+        <h3 class="tile-number"><?= $totalReclamations ?? '—' ?></h3>
+        <p class="tile-label">Réclamations</p>
+      </a>
+    </div>
+
     <!-- Approbation -->
     <div class="col-md-4 col-sm-6 col-12">
       <a href="/TinyTrack/approbation" class="tile-kids <?= $pendingAccounts > 0 ? 'is-alert' : 'tile-sun' ?>">
