@@ -52,7 +52,8 @@ class DashboardController extends Controller {
         try { $stats['totalEvents']    = $this->db->query("SELECT COUNT(*) FROM evenement")->fetchColumn(); } catch (Exception $e) {}
         try { $stats['totalRapports']  = $this->db->query("SELECT COUNT(*) FROM rapport")->fetchColumn();  } catch (Exception $e) {}
         try { $stats['totalActivites']    = $this->db->query("SELECT COUNT(*) FROM activite")->fetchColumn();     } catch (Exception $e) {}
-        try { $stats['totalReclamations'] = $this->db->query("SELECT COUNT(*) FROM reclamations")->fetchColumn(); } catch (Exception $e) { $stats['totalReclamations'] = 0; }
+        try { $stats['totalReclamations']  = $this->db->query("SELECT COUNT(*) FROM reclamations")->fetchColumn();  } catch (Exception $e) { $stats['totalReclamations']  = 0; }
+        try { $stats['totalConversations'] = $this->db->query("SELECT COUNT(*) FROM conversation")->fetchColumn(); } catch (Exception $e) { $stats['totalConversations'] = 0; }
 
         return $stats;
     }

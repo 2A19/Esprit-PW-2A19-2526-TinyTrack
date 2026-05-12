@@ -107,6 +107,15 @@ include __DIR__ . '/template/header.php';
       </a>
     </div>
 
+    <!-- Communication -->
+    <div class="col-md-4 col-sm-6 col-12">
+      <a href="/TinyTrack/View/BackOffice/communication/communication_Backend.php" class="tile-kids tile-sky">
+        <div class="tile-emoji">&#x1F4AC;</div>
+        <h3 class="tile-number"><?= $totalConversations ?? '—' ?></h3>
+        <p class="tile-label">Conversations</p>
+      </a>
+    </div>
+
     <!-- Approbation -->
     <div class="col-md-4 col-sm-6 col-12">
       <a href="/TinyTrack/approbation" class="tile-kids <?= $pendingAccounts > 0 ? 'is-alert' : 'tile-sun' ?>">
