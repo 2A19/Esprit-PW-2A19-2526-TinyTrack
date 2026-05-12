@@ -23,3 +23,8 @@ if (!defined('APP_BASE_URL')) define('APP_BASE_URL', 'http://localhost/TinyTrack
 // === Groq API (LLM pour analyse IA des rapports) ===
 // Obtenez votre cle gratuite sur : https://console.groq.com/keys
 if (!defined('GROQ_API_KEY')) define('GROQ_API_KEY', 'gsk_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+
+// === OpenAI API (module Gestion Reclamation : analyse sentiment + suggestion reponse) ===
+// Obtenez votre cle sur : https://platform.openai.com/api-keys
+if (!defined('OPENAI_API_KEY')) define('OPENAI_API_KEY', 'sk-XXXXXXXXXXXXXXXXXXXXXXXX');
+if (!defined('OPENAI_MODEL'))   define('OPENAI_MODEL',   'gpt-4o-mini');
