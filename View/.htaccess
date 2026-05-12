@@ -1,3 +1,11 @@
-# Vues passives — accès direct interdit. Tout doit passer par le routeur (run.php).
+# Vues — accès direct autorisé pour intégration BackOffice/FrontOffice
+# (les modules Rapport, Activité, Événement utilisent ce pattern)
+# Le router (run.php) reste utilisé pour les routes propres.
 RewriteEngine On
+
+# Autoriser tous les fichiers .php et assets dans /View/
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Pour tout le reste (URLs inexistantes), retour à l'accueil
 RewriteRule ^.*$ /TinyTrack/ [R=302,L]

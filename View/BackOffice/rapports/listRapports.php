@@ -1,9 +1,10 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Rapport
  * @author Mohamed Fadhlaoui <fadhlaoui1212@gmail.com>
  */
-require_once '../../controller/RapportController.php';
+require_once __DIR__ . '/../../../Controller/RapportController.php';
 
 $controller = new RapportController();
 
@@ -15,8 +16,8 @@ if ($tri !== 'asc' && $tri !== 'desc') {
 
 $rapports = $controller->listRapportsWithActivite($tri)->fetchAll();
 
-include 'template/header.php';
-include 'template/sidebar.php';
+include __DIR__ . '/../template/header.php';
+include __DIR__ . '/../template/sidebar.php';
 ?>
 
 <style>
@@ -116,7 +117,7 @@ include 'template/sidebar.php';
                 </div>
               </div>
 
-              <a href="../frontoffice/addRapport.php" class="btn btn-success ml-2">
+              <a href="/TinyTrack/View/FrontOffice/rapports/addRapport.php" class="btn btn-success ml-2">
                 <i class="fas fa-plus"></i> Ajouter rapport
               </a>
 
@@ -174,7 +175,7 @@ include 'template/sidebar.php';
   </section>
 </div>
 
-<?php include 'template/footer.php'; ?>
+<?php include __DIR__ . '/../template/footer.php'; ?>
 
 <script>
 $(document).ready(function(){

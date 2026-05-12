@@ -1,12 +1,13 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Rapport
  * @author Mohamed Fadhlaoui <fadhlaoui1212@gmail.com>
  */
-require_once '../../controller/RapportController.php';
+require_once __DIR__ . '/../../../Controller/RapportController.php';
 
 if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) {
-    header('Location: /ProjetRapport/tinytrack/view/frontoffice/listRapportsParent.php');
+    header('Location: /TinyTrack/View/FrontOffice/rapports/listRapportsParent.php');
     exit;
 }
 
@@ -25,7 +26,7 @@ foreach ($rapports as $r) {
 }
 
 if (!$rapport) {
-    header('Location: /ProjetRapport/tinytrack/view/frontoffice/listRapportsParent.php');
+    header('Location: /TinyTrack/View/FrontOffice/rapports/listRapportsParent.php');
     exit;
 }
 ?>
@@ -156,7 +157,7 @@ if (!$rapport) {
         Exporter / Enregistrer en PDF
     </button>
 
-    <a href="/ProjetRapport/tinytrack/view/frontoffice/listRapportsParent.php" class="btn btn-back">
+    <a href="/TinyTrack/View/FrontOffice/rapports/listRapportsParent.php" class="btn btn-back">
         Retour
     </a>
 </div>

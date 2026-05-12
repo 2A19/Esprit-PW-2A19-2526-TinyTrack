@@ -1,11 +1,12 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Rapport
  * @author Mohamed Fadhlaoui <fadhlaoui1212@gmail.com>
  */
-require_once '../../controller/RapportController.php';
-require_once '../../controller/ActiviteController.php';
-require_once '../../model/Rapport.php';
+require_once __DIR__ . '/../../../Controller/RapportController.php';
+require_once __DIR__ . '/../../../Controller/ActiviteController.php';
+require_once __DIR__ . '/../../../Model/Rapport.php';
 
 $controller = new RapportController();
 $activiteController = new ActiviteController();
@@ -14,7 +15,7 @@ $activites = $activiteController->listActivites()->fetchAll();
 $errors = array();
 
 if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) {
-    header('Location: /ProjetRapport/tinytrack/view/backoffice/listRapports.php');
+    header('Location: /TinyTrack/View/BackOffice/rapports/listRapports.php');
     exit;
 }
 
@@ -22,7 +23,7 @@ $id = (int) $_GET['id'];
 $data = $controller->showRapport($id);
 
 if (!$data) {
-    header('Location: /ProjetRapport/tinytrack/view/backoffice/listRapports.php');
+    header('Location: /TinyTrack/View/BackOffice/rapports/listRapports.php');
     exit;
 }
 
@@ -98,15 +99,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $controller->updateRapport($rapport, $id);
 
-        header('Location: /ProjetRapport/tinytrack/view/backoffice/listRapports.php?success=edit');
+        header('Location: /TinyTrack/View/BackOffice/rapports/listRapports.php?success=edit');
         exit;
     }
 
     $data = array_merge($data, $_POST);
 }
 
-include 'template/header.php';
-include 'template/sidebar.php';
+include __DIR__ . '/../template/header.php';
+include __DIR__ . '/../template/sidebar.php';
 ?>
 
 <div class="content-wrapper">
@@ -121,7 +122,7 @@ include 'template/sidebar.php';
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item">
-                            <a href="/ProjetRapport/tinytrack/view/backoffice/listRapports.php">Rapports</a>
+                            <a href="/TinyTrack/View/BackOffice/rapports/listRapports.php">Rapports</a>
                         </li>
                         <li class="breadcrumb-item active">Modifier</li>
                     </ol>
@@ -247,7 +248,7 @@ include 'template/sidebar.php';
                                     <i class="fas fa-save"></i> Enregistrer
                                 </button>
 
-                                <a href="/ProjetRapport/tinytrack/view/backoffice/listRapports.php" class="btn btn-default float-right">
+                                <a href="/TinyTrack/View/BackOffice/rapports/listRapports.php" class="btn btn-default float-right">
                                     <i class="fas fa-arrow-left"></i> Retour
                                 </a>
                             </div>
@@ -261,7 +262,7 @@ include 'template/sidebar.php';
     </section>
 </div>
 
-<?php include 'template/footer.php'; ?>
+<?php include __DIR__ . '/../template/footer.php'; ?>
 
 <script>
 function setErreur(id, message) {

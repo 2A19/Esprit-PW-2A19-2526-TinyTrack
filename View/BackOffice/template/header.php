@@ -8,9 +8,14 @@ if ($_SESSION['user_role'] === 'parent') {
     header('Location: /TinyTrack/mes-enfants');
     exit;
 }
+// L'educateur a acces aux pages rapports/activites du BackOffice
+// pour pouvoir editer/supprimer ses propres rapports.
 if ($_SESSION['user_role'] === 'educateur') {
-    header('Location: /TinyTrack/educateurs/profil');
-    exit;
+    $allowedForEducateur = (bool) preg_match('#/(rapports|activites)/#', $_SERVER['REQUEST_URI'] ?? '');
+    if (!$allowedForEducateur) {
+        header('Location: /TinyTrack/educateurs/profil');
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>

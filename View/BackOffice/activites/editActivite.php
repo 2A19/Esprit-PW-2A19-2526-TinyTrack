@@ -1,10 +1,11 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Rapport
  * @author Mohamed Fadhlaoui <fadhlaoui1212@gmail.com>
  */
-require_once '../../controller/ActiviteController.php';
-require_once '../../model/Activite.php';
+require_once __DIR__ . '/../../../Controller/ActiviteController.php';
+require_once __DIR__ . '/../../../Model/Activite.php';
 
 $controller = new ActiviteController();
 $errors = [];
@@ -65,8 +66,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = array_merge($data, $_POST);
 }
 
-include 'template/header.php';
-include 'template/sidebar.php';
+include __DIR__ . '/../template/header.php';
+include __DIR__ . '/../template/sidebar.php';
 ?>
 
 <div class="content-wrapper">
@@ -94,7 +95,7 @@ include 'template/sidebar.php';
   </div></section>
 </div>
 
-<?php include 'template/footer.php'; ?>
+<?php include __DIR__ . '/../template/footer.php'; ?>
 <script>
 function showE(id,msg){var f=document.getElementById(id);var e=document.getElementById('err_'+id);if(f)f.classList.add('is-invalid');if(e){e.textContent=msg;e.style.display='block';}}
 function clearE(id){var f=document.getElementById(id);var e=document.getElementById('err_'+id);if(f)f.classList.remove('is-invalid');if(e)e.style.display='none';}

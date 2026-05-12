@@ -1,9 +1,10 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Rapport
  * @author Mohamed Fadhlaoui <fadhlaoui1212@gmail.com>
  */
-require_once '../../controller/ActiviteController.php';
+require_once __DIR__ . '/../../../Controller/ActiviteController.php';
 require_once '../../config/config.php';
 
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {

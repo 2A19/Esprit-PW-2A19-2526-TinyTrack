@@ -1,15 +1,16 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Rapport
  * @author Mohamed Fadhlaoui <fadhlaoui1212@gmail.com>
  */
-require_once '../../controller/ActiviteController.php';
+require_once __DIR__ . '/../../../Controller/ActiviteController.php';
 
 $controller = new ActiviteController();
 $statsEducateurs = $controller->statistiquesActivitesParEducateur();
 
-include 'template/header.php';
-include 'template/sidebar.php';
+include __DIR__ . '/../template/header.php';
+include __DIR__ . '/../template/sidebar.php';
 ?>
 
 <div class="content-wrapper">
@@ -32,7 +33,7 @@ include 'template/sidebar.php';
                 </div>
 
                 <div class="card-body">
-                    <a href="/ProjetRapport/tinytrack/view/backoffice/listActivites.php" class="btn btn-default mb-3">
+                    <a href="/TinyTrack/View/BackOffice/activites/listActivites.php" class="btn btn-default mb-3">
                         <i class="fas fa-arrow-left"></i> Retour
                     </a>
 
@@ -44,7 +45,7 @@ include 'template/sidebar.php';
     </section>
 </div>
 
-<?php include 'template/footer.php'; ?>
+<?php include __DIR__ . '/../template/footer.php'; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
