@@ -1,13 +1,29 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Reclamation
  * @author Mahdi Ben Slimene <mahdibenslimene2005@gmail.com>
  */
-require_once __DIR__ . '/../../controller/ReclamationController.php';
+require_once __DIR__ . '/../../../Controller/ReclamationController.php';
+require_once __DIR__ . '/../../../config/db.php';
 $reclamationController = new ReclamationController();
 $errors = []; $success = false;
 $edit_id = $_GET['edit_id'] ?? null;
 $edit_rec = $edit_id ? $reclamationController->getReclamationById($edit_id) : null;
+
+// Recupere l'email du parent connecte pour ne lister QUE ses reclamations.
+$parentEmail = null;
+$parentNom   = null;
+if (!empty($_SESSION['user_id'])) {
+    $stmt = Database::getInstance()->getConnection()
+        ->prepare("SELECT email, prenom, nom FROM user WHERE id = :id LIMIT 1");
+    $stmt->execute([':id' => (int)$_SESSION['user_id']]);
+    $row = $stmt->fetch();
+    if ($row) {
+        $parentEmail = $row['email'];
+        $parentNom   = trim($row['prenom'] . ' ' . $row['nom']);
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_reclamation'])) {
     if (isset($_POST['id']) && !empty($_POST['id'])) {
@@ -18,13 +34,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_reclamation'])
         if ($result === true) { $success = "Réclamation envoyée !"; $_POST = []; } else { $errors = $result; }
     }
 }
-$reclamations = $reclamationController->listReclamations();
+// Filtre par email du parent connecte (sinon liste vide pour eviter la fuite)
+$reclamations = $parentEmail ? $reclamationController->listReclamationsByEmail($parentEmail) : [];
 include 'template/header.php';
 ?>
 
 <div class="container py-5">
   <div class="text-center mb-5">
-    <img src="/ProjetReclamation/gestionreclamation/assets/images/logo.png" alt="TinyTrack" style="height:70px;margin-bottom:15px;">
+    <img src="/TinyTrack/assets/images/logo.png" alt="TinyTrack" style="height:70px;margin-bottom:15px;">
     <h2 class="section-title"><i class="fas fa-headset"></i> Espace Réclamation</h2>
     <p class="text-muted mt-3">Déposez votre réclamation, notre équipe vous répond rapidement</p>
   </div>

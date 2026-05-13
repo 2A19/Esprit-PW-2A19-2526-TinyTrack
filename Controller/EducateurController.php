@@ -81,7 +81,13 @@ class EducateurController extends Controller {
         $sortBy  = $_GET['sort'] ?? $_GET['sortBy'] ?? 'nom';
         $sortDir = $_GET['dir']  ?? $_GET['sortDir'] ?? 'asc';
 
-        $list = $this->listerParentsFiltered($filters, $sortBy, $sortDir);
+        // Educateur : ne voit que les parents dont au moins un enfant est dans SON groupe.
+        // Admin : voit tous les parents.
+        if (($_SESSION['user_role'] ?? '') === 'educateur') {
+            $list = $this->listerParentsParEducateur((int)$_SESSION['user_id'], $filters, $sortBy, $sortDir);
+        } else {
+            $list = $this->listerParentsFiltered($filters, $sortBy, $sortDir);
+        }
         $stats = $this->statsParents($list);
 
         $this->render('BackOffice/parents/list', [
@@ -228,6 +234,41 @@ class EducateurController extends Controller {
                        (SELECT GROUP_CONCAT(e.prenom SEPARATOR ', ') FROM enfant e WHERE e.parent_id = u.id) AS enfants_noms,
                        (SELECT COUNT(*) FROM enfant e WHERE e.parent_id = u.id) AS nb_enfants,
                        (SELECT COUNT(*) FROM enfant e WHERE e.parent_id = u.id AND e.statut = 'actif') AS nb_enfants_actifs
+                FROM user u
+                WHERE " . implode(' AND ', $where) . "
+                ORDER BY $sortCol $sortDir";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Liste les parents dont AU MOINS un enfant est dans le groupe gere par
+     * l'educateur donne. Permet a l'educateur de voir ses parents et de les
+     * contacter via le module Communication.
+     */
+    public function listerParentsParEducateur($educateurId, $filters = [], $sortBy = 'nom', $sortDir = 'asc') {
+        $validSort = ['nom' => 'u.nom', 'prenom' => 'u.prenom', 'nb_enfants' => 'nb_enfants'];
+        $sortCol = $validSort[$sortBy] ?? 'u.nom';
+        $sortDir = strtolower($sortDir) === 'desc' ? 'DESC' : 'ASC';
+
+        $where = ["u.role = 'parent'", "EXISTS (SELECT 1 FROM enfant e JOIN groupe g ON g.id = e.groupe_id WHERE e.parent_id = u.id AND g.educateur_id = :eduid)"];
+        $params = [':eduid' => (int)$educateurId];
+
+        if (!empty($filters['q'])) {
+            $where[] = "(u.nom LIKE :q1 OR u.prenom LIKE :q2 OR u.email LIKE :q3)";
+            $kw = '%' . $filters['q'] . '%';
+            $params[':q1'] = $kw; $params[':q2'] = $kw; $params[':q3'] = $kw;
+        }
+        if (!empty($filters['statut']) && in_array($filters['statut'], ['actif', 'inactif', 'en_attente'])) {
+            $where[] = "u.statut = :statut";
+            $params[':statut'] = $filters['statut'];
+        }
+
+        $sql = "SELECT u.*,
+                       (SELECT GROUP_CONCAT(e.prenom SEPARATOR ', ') FROM enfant e WHERE e.parent_id = u.id AND e.statut = 'actif') AS enfants_noms,
+                       (SELECT COUNT(*) FROM enfant e WHERE e.parent_id = u.id AND e.statut = 'actif') AS nb_enfants
                 FROM user u
                 WHERE " . implode(' AND ', $where) . "
                 ORDER BY $sortCol $sortDir";

@@ -196,13 +196,23 @@ include __DIR__ . '/../../FrontOffice/template/header.php';
             </td>
             <td class="text-center" style="white-space:nowrap;">
               <?php if ($p['statut'] === 'actif'): ?>
+                <a href="/TinyTrack/Controller/openConversation.php?parent_id=<?= (int)$p['id'] ?>"
+                   class="btn-act"
+                   style="background:#E3F2FD;color:#1565C0;"
+                   title="Contacter ce parent">
+                  <i class="fas fa-comments"></i>
+                </a>
+                <?php if (($_SESSION['user_role'] ?? '') === 'admin'): ?>
                 <form method="POST" action="/TinyTrack/educateurs/archive/<?= (int)$p['id'] ?>" style="display:inline" onsubmit="return confirm('Archiver ce compte parent ?');">
                   <button type="submit" class="btn-act archive" title="Archiver"><i class="fas fa-archive"></i></button>
                 </form>
+                <?php endif; ?>
               <?php else: ?>
+                <?php if (($_SESSION['user_role'] ?? '') === 'admin'): ?>
                 <form method="POST" action="/TinyTrack/educateurs/activate/<?= (int)$p['id'] ?>" style="display:inline">
                   <button type="submit" class="btn-act unarchive" title="Réactiver"><i class="fas fa-undo"></i></button>
                 </form>
+                <?php endif; ?>
               <?php endif; ?>
             </td>
           </tr>

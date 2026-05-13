@@ -1,13 +1,25 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Reclamation
  * @author Mahdi Ben Slimene <mahdibenslimene2005@gmail.com>
  */
-require_once __DIR__ . '/../../controller/ReclamationController.php';
-require_once __DIR__ . '/../../controller/ReponseController.php';
+require_once __DIR__ . '/../../../Controller/ReclamationController.php';
+require_once __DIR__ . '/../../../Controller/ReponseController.php';
+require_once __DIR__ . '/../../../config/db.php';
 $reclamationController = new ReclamationController();
 $reponseController = new ReponseController();
-$reclamations = $reclamationController->listReclamations();
+
+// Recupere l'email du parent connecte pour filtrer
+$parentEmail = null;
+if (!empty($_SESSION['user_id'])) {
+    $stmt = Database::getInstance()->getConnection()
+        ->prepare("SELECT email FROM user WHERE id = :id LIMIT 1");
+    $stmt->execute([':id' => (int)$_SESSION['user_id']]);
+    $row = $stmt->fetch();
+    $parentEmail = $row['email'] ?? null;
+}
+$reclamations = $parentEmail ? $reclamationController->listReclamationsByEmail($parentEmail) : [];
 $recentResponses = [];
 foreach ($reclamations as $rec) {
     $reps = $reponseController->getReponsesByReclamation($rec->getId());
@@ -18,7 +30,7 @@ include 'template/header.php';
 
 <div class="container py-5">
   <div class="text-center mb-5">
-    <img src="/ProjetReclamation/gestionreclamation/assets/images/logo.png" alt="TinyTrack" style="height:70px;margin-bottom:15px;">
+    <img src="/TinyTrack/assets/images/logo.png" alt="TinyTrack" style="height:70px;margin-bottom:15px;">
     <h2 class="section-title"><i class="fas fa-reply-all"></i> Suivi & Réponses</h2>
     <p class="text-muted mt-3">Consultez les réponses de notre équipe</p>
   </div>

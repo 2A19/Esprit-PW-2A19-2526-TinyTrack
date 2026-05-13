@@ -395,33 +395,100 @@ function navActive(array $patterns, $currentPath) {
     <div class="collapse navbar-collapse" id="navbarKider">
       <ul class="navbar-nav ms-auto">
         <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
-        <!-- Admin : 6 sections principales (cohérentes avec le BackOffice) -->
-        <li class="nav-item"><a class="nav-link <?= navActive(['/enfants'],     $__navPath) ? 'active' : '' ?>" href="/TinyTrack/enfants"><i class="fas fa-child"></i> Enfants</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['/educateurs'],  $__navPath) ? 'active' : '' ?>" href="/TinyTrack/educateurs"><i class="fas fa-chalkboard-teacher"></i> Éducateurs</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['/evenements'],  $__navPath) ? 'active' : '' ?>" href="/TinyTrack/evenements"><i class="fas fa-calendar-alt"></i> Événements</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['/rapports'],    $__navPath) ? 'active' : '' ?>" href="/TinyTrack/rapports"><i class="fas fa-book"></i> Rapports</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['/activites'],   $__navPath) ? 'active' : '' ?>" href="/TinyTrack/activites"><i class="fas fa-puzzle-piece"></i> Activités</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['reclamationback','reclamationfront','reponsesback'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/BackOffice/reclamations/reclamationBack.php"><i class="fas fa-exclamation-circle"></i> Réclamations</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['communication_backend','communication.php'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/BackOffice/communication/communication_Backend.php"><i class="fas fa-comments"></i> Communication</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['/approbation'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/approbation"><i class="fas fa-hourglass-half"></i> En attente</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['/parents'],     $__navPath) ? 'active' : '' ?>" href="/TinyTrack/parents"><i class="fas fa-users"></i> Parents</a></li>
+        <!-- Admin : navbar groupée en dropdowns -->
+        <?php
+          $gestionActive = navActive(['/enfants','/educateurs','/parents','/approbation'], $__navPath);
+          $modulesActive = navActive(['/evenements','/rapports','/activites'], $__navPath);
+          $commActive    = navActive(['reclamationback','reclamationfront','reponsesback','communication_backend','communication.php'], $__navPath);
+        ?>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle <?= $gestionActive ? 'active' : '' ?>" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-users-cog"></i> Gestion
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" style="border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.1);">
+            <li><a class="dropdown-item" href="/TinyTrack/enfants"><i class="fas fa-child" style="color:#4CAF50;width:20px;"></i> Enfants</a></li>
+            <li><a class="dropdown-item" href="/TinyTrack/View/BackOffice/inscriptions/gestion.php"><i class="fas fa-user-plus" style="color:#26A69A;width:20px;"></i> Inscriptions</a></li>
+            <li><a class="dropdown-item" href="/TinyTrack/educateurs"><i class="fas fa-chalkboard-teacher" style="color:#5B9BD5;width:20px;"></i> Éducateurs</a></li>
+            <li><a class="dropdown-item" href="/TinyTrack/parents"><i class="fas fa-users" style="color:#FF8FAB;width:20px;"></i> Parents</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/TinyTrack/approbation"><i class="fas fa-hourglass-half" style="color:#FFA726;width:20px;"></i> En attente</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle <?= $modulesActive ? 'active' : '' ?>" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-puzzle-piece"></i> Modules
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" style="border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.1);">
+            <li><a class="dropdown-item" href="/TinyTrack/evenements"><i class="fas fa-calendar-alt" style="color:#FFA726;width:20px;"></i> Événements</a></li>
+            <li><a class="dropdown-item" href="/TinyTrack/rapports"><i class="fas fa-book" style="color:#9C7CDB;width:20px;"></i> Rapports</a></li>
+            <li><a class="dropdown-item" href="/TinyTrack/activites"><i class="fas fa-paint-brush" style="color:#FFD93D;width:20px;"></i> Activités</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle <?= $commActive ? 'active' : '' ?>" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-comments"></i> Communication
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" style="border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.1);">
+            <li><a class="dropdown-item" href="/TinyTrack/View/BackOffice/communication/communication_Backend.php"><i class="fas fa-comments" style="color:#5B9BD5;width:20px;"></i> Messagerie</a></li>
+            <li><a class="dropdown-item" href="/TinyTrack/View/BackOffice/reclamations/reclamationBack.php"><i class="fas fa-exclamation-circle" style="color:#EF5350;width:20px;"></i> Réclamations</a></li>
+          </ul>
+        </li>
         <li class="nav-item ms-2"><a class="nav-link nav-link-profil <?= navActive(['/profil'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/profil" title="Mon profil"><i class="fas fa-user-circle"></i></a></li>
         <?php elseif ($_SESSION['user_role'] === 'educateur'): ?>
-        <!-- Éducateur : tableau de bord + événements + rapports + activités -->
+        <!-- Éducateur : navbar groupée en dropdowns -->
+        <?php
+          $eduWorkActive    = navActive(['/evenements/','mesrapports','editrapport','deleterapport','analyserapport','addrapport','listactiviteseducateur','/activites'], $__navPath);
+          $eduContactActive = navActive(['/parents','communication_backend','communication.php','reclamationback','reponsesback'], $__navPath);
+        ?>
         <li class="nav-item"><a class="nav-link <?= navActive(['/dashboard_educateur.php'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/dashboard/educateur"><i class="fas fa-th-large"></i> Tableau de bord</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['/evenements/'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/evenements/parent"><i class="fas fa-calendar-alt"></i> Événements</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['mesrapports','editrapport','deleterapport','analyserapport','addrapport'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/rapports/mesRapports.php"><i class="fas fa-book"></i> Mes rapports</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['listactiviteseducateur','/activites'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/rapports/listActivitesEducateur.php?id_educateur=<?= (int)$_SESSION['user_id'] ?>"><i class="fas fa-puzzle-piece"></i> Mes activités</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['/profil'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/educateurs/profil"><i class="fas fa-user-circle"></i> Mon profil</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle <?= $eduWorkActive ? 'active' : '' ?>" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-briefcase"></i> Mon travail
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" style="border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.1);">
+            <li><a class="dropdown-item" href="/TinyTrack/evenements/parent"><i class="fas fa-calendar-alt" style="color:#FFA726;width:20px;"></i> Événements</a></li>
+            <li><a class="dropdown-item" href="/TinyTrack/View/FrontOffice/rapports/mesRapports.php"><i class="fas fa-book" style="color:#9C7CDB;width:20px;"></i> Mes rapports</a></li>
+            <li><a class="dropdown-item" href="/TinyTrack/View/FrontOffice/rapports/listActivitesEducateur.php?id_educateur=<?= (int)$_SESSION['user_id'] ?>"><i class="fas fa-paint-brush" style="color:#FFD93D;width:20px;"></i> Mes activités</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle <?= $eduContactActive ? 'active' : '' ?>" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-comments"></i> Contacts
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" style="border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.1);">
+            <li><a class="dropdown-item" href="/TinyTrack/parents"><i class="fas fa-users" style="color:#FF8FAB;width:20px;"></i> Parents</a></li>
+            <li><a class="dropdown-item" href="/TinyTrack/View/BackOffice/communication/communication_Backend.php"><i class="fas fa-comments" style="color:#5B9BD5;width:20px;"></i> Communication</a></li>
+            <li><a class="dropdown-item" href="/TinyTrack/View/BackOffice/reclamations/reclamationBack.php"><i class="fas fa-exclamation-circle" style="color:#EF5350;width:20px;"></i> Réclamations</a></li>
+          </ul>
+        </li>
+        <li class="nav-item ms-2"><a class="nav-link nav-link-profil <?= navActive(['/profil'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/educateurs/profil" title="Mon profil"><i class="fas fa-user-circle"></i></a></li>
         <?php else: ?>
-        <!-- Parent: menu complet -->
-        <li class="nav-item"><a class="nav-link <?= navActive(['/enfants/'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/mes-enfants"><i class="fas fa-child"></i> Enfants</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['/evenements/'], $__navPath) && !navActive(['/mes-reservations'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/evenements/parent"><i class="fas fa-calendar-alt"></i> Événements</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['/mes-reservations'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/mes-reservations"><i class="fas fa-ticket-alt"></i> Mes réservations</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['/rapports/'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/rapports/parent"><i class="fas fa-book"></i> Rapports</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['reclamationfront'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/reclamations/reclamationFront.php"><i class="fas fa-exclamation-circle"></i> Réclamations</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['/messages.php'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/messages"><i class="fas fa-envelope"></i> Messages</a></li>
-        <li class="nav-item"><a class="nav-link <?= navActive(['communication.php'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/View/FrontOffice/communication/communication.php"><i class="fas fa-comments"></i> Communication</a></li>
+        <!-- Parent : navbar groupée en dropdowns -->
+        <?php
+          $parentActiveActive  = navActive(['/evenements/','/mes-reservations','/rapports/'], $__navPath);
+          $parentContactActive = navActive(['reclamationfront','/messages.php','communication.php'], $__navPath);
+        ?>
+        <li class="nav-item"><a class="nav-link <?= navActive(['/enfants/'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/mes-enfants"><i class="fas fa-child"></i> Mon enfant</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle <?= $parentActiveActive ? 'active' : '' ?>" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-calendar-day"></i> Vie de la crèche
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" style="border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.1);">
+            <li><a class="dropdown-item" href="/TinyTrack/evenements/parent"><i class="fas fa-calendar-alt" style="color:#FFA726;width:20px;"></i> Événements</a></li>
+            <li><a class="dropdown-item" href="/TinyTrack/mes-reservations"><i class="fas fa-ticket-alt" style="color:#FFD93D;width:20px;"></i> Mes réservations</a></li>
+            <li><a class="dropdown-item" href="/TinyTrack/rapports/parent"><i class="fas fa-book" style="color:#9C7CDB;width:20px;"></i> Rapports</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle <?= $parentContactActive ? 'active' : '' ?>" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-comments"></i> Communication
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" style="border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.1);">
+            <li><a class="dropdown-item" href="/TinyTrack/View/FrontOffice/communication/communication.php"><i class="fas fa-comments" style="color:#5B9BD5;width:20px;"></i> Messagerie</a></li>
+            <li><a class="dropdown-item" href="/TinyTrack/messages"><i class="fas fa-envelope" style="color:#26A69A;width:20px;"></i> Notifications</a></li>
+            <li><a class="dropdown-item" href="/TinyTrack/View/FrontOffice/reclamations/reclamationFront.php"><i class="fas fa-exclamation-circle" style="color:#EF5350;width:20px;"></i> Mes réclamations</a></li>
+          </ul>
+        </li>
         <li class="nav-item"><a class="nav-link <?= navActive(['/profil.php'], $__navPath) ? 'active' : '' ?>" href="/TinyTrack/profil"><i class="fas fa-user-circle"></i> Mon profil</a></li>
         <?php endif; ?>
         <li class="nav-item ms-2">
