@@ -1,10 +1,11 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Reclamation
  * @author Mahdi Ben Slimene <mahdibenslimene2005@gmail.com>
  */
-require_once __DIR__ . '/../../controller/ReclamationController.php';
-require_once __DIR__ . '/../../controller/ReponseController.php';
+require_once __DIR__ . '/../../../Controller/ReclamationController.php';
+require_once __DIR__ . '/../../../Controller/ReponseController.php';
 
 $reclamationController = new ReclamationController();
 $reponseController     = new ReponseController();
@@ -31,8 +32,16 @@ if (isset($_GET['delete_id'])) {
 if (isset($_GET['id_manage'])) $showModal = 'reply';
 if (isset($_GET['id_edit']))   $showModal = 'edit_rec';
 
-$reclamations = $reclamationController->listReclamations();
-$stats        = $reclamationController->getStats();
+// Educateur : ne voit que les reclamations de SES parents (ceux dont un enfant
+// est dans son groupe). Admin : voit tout.
+if (($_SESSION['user_role'] ?? '') === 'educateur') {
+    $eduId        = (int) $_SESSION['user_id'];
+    $reclamations = $reclamationController->listReclamationsByEducateur($eduId);
+    $stats        = $reclamationController->getStatsByEducateur($eduId);
+} else {
+    $reclamations = $reclamationController->listReclamations();
+    $stats        = $reclamationController->getStats();
+}
 $topSubjects  = $reclamationController->getTopSubjects(6);
 $tauxRes      = $reclamationController->getResolutionRate();
 
@@ -540,7 +549,7 @@ $(document).ready(function () {
     $('#replyMessage').val('');
 
     $.ajax({
-      url:    '../../api/suggest_response.php',
+      url:    '/TinyTrack/api/suggest_response.php',
       method: 'POST',
       data:   { sujet: sujet, description: description },
       success: function (res) {
@@ -570,7 +579,7 @@ function genererReponseIA() {
   $('#iaTexte').val('');
 
   $.ajax({
-    url:    '../../api/suggest_response.php',
+    url:    '/TinyTrack/api/suggest_response.php',
     method: 'POST',
     data:   { sujet: iaContexte.sujet, description: iaContexte.description, nom_client: iaContexte.client },
     success: function (res) {

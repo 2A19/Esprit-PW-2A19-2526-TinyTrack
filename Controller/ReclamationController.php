@@ -16,6 +16,68 @@ class ReclamationController {
     }
 
     
+    /**
+     * Liste les reclamations soumises par les parents dont AU MOINS un enfant
+     * est dans un groupe gere par l'educateur donne. Sert au BackOffice pour
+     * qu'un educateur ne voit que les reclamations qui le concernent.
+     */
+    public function listReclamationsByEducateur($educateurId) {
+        $sql = "SELECT r.* FROM reclamations r
+                WHERE r.email IN (
+                    SELECT DISTINCT u.email FROM user u
+                    JOIN enfant e ON e.parent_id = u.id
+                    JOIN groupe g ON g.id = e.groupe_id
+                    WHERE g.educateur_id = :eduid
+                )
+                ORDER BY r.date_creation DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':eduid' => (int)$educateurId]);
+        $reclamations = [];
+        while ($row = $stmt->fetch()) {
+            $reclamations[] = new Reclamation(
+                $row['id'], $row['nom_client'], $row['email'],
+                $row['sujet'], $row['description'], $row['statut'], $row['date_creation'], $row['sentiment'] ?? null
+            );
+        }
+        return $reclamations;
+    }
+
+    /**
+     * Stats reclamations limitees aux parents lies a un educateur.
+     */
+    public function getStatsByEducateur($educateurId) {
+        $base = "FROM reclamations r WHERE r.email IN (
+                    SELECT DISTINCT u.email FROM user u
+                    JOIN enfant e ON e.parent_id = u.id
+                    JOIN groupe g ON g.id = e.groupe_id
+                    WHERE g.educateur_id = :eduid
+                )";
+        $stats = [];
+        $stmt = $this->db->prepare("SELECT COUNT(*) $base"); $stmt->execute([':eduid'=>(int)$educateurId]); $stats['total'] = $stmt->fetchColumn();
+        $stmt = $this->db->prepare("SELECT COUNT(*) $base AND r.statut='En attente'"); $stmt->execute([':eduid'=>(int)$educateurId]); $stats['pending'] = $stmt->fetchColumn();
+        $stmt = $this->db->prepare("SELECT COUNT(*) $base AND r.statut='Traité'"); $stmt->execute([':eduid'=>(int)$educateurId]); $stats['solved'] = $stmt->fetchColumn();
+        return $stats;
+    }
+
+    /**
+     * Liste les reclamations soumises par UN parent precis (filtre par email).
+     * Utilise sur la page FrontOffice pour que chaque parent ne voie QUE ses
+     * propres reclamations.
+     */
+    public function listReclamationsByEmail($email) {
+        $sql = "SELECT * FROM reclamations WHERE email = :email ORDER BY date_creation DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':email' => $email]);
+        $reclamations = [];
+        while ($row = $stmt->fetch()) {
+            $reclamations[] = new Reclamation(
+                $row['id'], $row['nom_client'], $row['email'],
+                $row['sujet'], $row['description'], $row['statut'], $row['date_creation'], $row['sentiment'] ?? null
+            );
+        }
+        return $reclamations;
+    }
+
     public function listReclamations() {
         $sql = "SELECT * FROM reclamations ORDER BY date_creation DESC";
         $stmt = $this->db->query($sql);
@@ -118,9 +180,12 @@ class ReclamationController {
 
     // stat : retourne les sujets les plus récurrents groupés et triés par fréquence
     public function getTopSubjects($limit = 5) {
-        $sql = "SELECT sujet, COUNT(*) as total FROM reclamations GROUP BY sujet ORDER BY total DESC LIMIT ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$limit]);
+        // LIMIT en parametre prepare = string par defaut -> erreur SQL.
+        // On cast en int et on inline (safe : valeur numerique uniquement).
+        $limit = (int) $limit;
+        if ($limit <= 0) $limit = 5;
+        $sql = "SELECT sujet, COUNT(*) as total FROM reclamations GROUP BY sujet ORDER BY total DESC LIMIT $limit";
+        $stmt = $this->db->query($sql);
         return $stmt->fetchAll();
     }
 

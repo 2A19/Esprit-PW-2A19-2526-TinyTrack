@@ -1,10 +1,11 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 /**
  * Module : Gestion Reclamation
  * @author Mahdi Ben Slimene <mahdibenslimene2005@gmail.com>
  */
-require_once __DIR__ . '/../../controller/ReclamationController.php';
-require_once __DIR__ . '/../../controller/ReponseController.php';
+require_once __DIR__ . '/../../../Controller/ReclamationController.php';
+require_once __DIR__ . '/../../../Controller/ReponseController.php';
 
 $reclamationController = new ReclamationController();
 $reponseController     = new ReponseController();

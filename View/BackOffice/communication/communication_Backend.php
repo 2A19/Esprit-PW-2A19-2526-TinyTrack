@@ -3,13 +3,13 @@
  * Module : Communication parents
  * @author Rajhi Amen Allah <amenallah.rajhi@esprit.tn>
  */
-require_once __DIR__ . "/../../controller/ConversationController.php";
-require_once __DIR__ . "/../../controller/MessageController.php";
+require_once __DIR__ . "/../../../Controller/ConversationController.php";
+require_once __DIR__ . "/../../../Controller/CommunicationMessageController.php";
 
-$devUser = require __DIR__ . "/../../config/dev_user.php";
+$devUser = require __DIR__ . "/../../../config/dev_user.php";
 
 if (($devUser['page'] ?? 'front') !== 'back') {
-  header('Location: /ProjetCommunication/view/front/communication.php');
+  header('Location: /TinyTrack/View/FrontOffice/communication/communication.php');
   exit;
 }
 
@@ -961,21 +961,21 @@ include 'template/sidebar.php';
                         $rowChildNames = trim((string) ($conversation->child_names ?? ''));
                         $rowIsArchived = ($conversation->status ?? '') === 'archived';
                         $rowAlertMessages = (int) ($conversation->alert_messages_count ?? 0);
-                        $rowLink = '/ProjetCommunication/view/back/communication_Backend.php?id=' . (int) $conversation->id;
+                        $rowLink = '/TinyTrack/View/BackOffice/communication/communication_Backend.php?id=' . (int) $conversation->id;
                         $rowMenuId = 'row-menu-' . (int) $conversation->id;
-                        $rowStatusLink = '/ProjetCommunication/controller/updateConversationStatus.php?id=' . (int) $conversation->id
+                        $rowStatusLink = '/TinyTrack/Controller/updateConversationStatus.php?id=' . (int) $conversation->id
                           . '&action=' . ($rowIsArchived ? 'restore' : 'archive')
-                          . '&redirect=../view/back/communication_Backend.php';
+                          . '&redirect=/TinyTrack/View/BackOffice/communication/communication_Backend.php';
                         ?>
                         <tr class="conversation-row" data-href="<?= htmlspecialchars($rowLink) ?>"
                           data-search="<?= htmlspecialchars(strtolower($rowParentName . ' ' . $rowStaffName . ' ' . $rowChildNames . ' ' . ($conversation->status ?? ''))) ?>">
                           <td>
                             <div class="conversation-main-title">
-                              <?= htmlspecialchars($rowStaffName !== '' ? $rowStaffName : 'Conversation') ?>
+                              <?= htmlspecialchars($rowParentName !== '' ? $rowParentName : 'Conversation') ?>
                             </div>
-                            <?php if ($rowParentName !== ''): ?>
+                            <?php if ($rowStaffName !== ''): ?>
                               <div class="conversation-main-sub" style="color:#94a3b8;font-weight:700;">
-                                <?= htmlspecialchars($rowParentName) ?>
+                                <i class="fas fa-user-tie" style="font-size:0.7rem;"></i> <?= htmlspecialchars($rowStaffName) ?>
                               </div>
                             <?php endif; ?>
                           </td>
@@ -1008,7 +1008,7 @@ include 'template/sidebar.php';
                                 <i class="fas <?= $rowIsArchived ? 'fa-box-open' : 'fa-box-archive' ?>"></i>
                                 <?= $rowIsArchived ? 'Desarchiver' : 'Archiver' ?>
                               </a>
-                              <a href="/ProjetCommunication/controller/deleteConversation.php?id=<?= (int) $conversation->id ?>"
+                              <a href="/TinyTrack/Controller/deleteConversation.php?id=<?= (int) $conversation->id ?>"
                                 onclick="return confirm('Supprimer cette conversation ?')">
                                 <i class="fas fa-trash"></i>
                                 Supprimer
@@ -1025,7 +1025,7 @@ include 'template/sidebar.php';
           <?php else: ?>
             <div class="chat-header">
               <div>
-                <a href="/ProjetCommunication/view/back/communication_Backend.php" class="back-to-list">
+                <a href="/TinyTrack/View/BackOffice/communication/communication_Backend.php" class="back-to-list">
                   <i class="fas fa-arrow-left"></i>
                   Retour a la liste
                 </a>
@@ -1037,12 +1037,12 @@ include 'template/sidebar.php';
                 </div>
               </div>
               <div class="chat-actions">
-                <a href="/ProjetCommunication/controller/updateConversationStatus.php?id=<?= $selectedConversation->id ?>&action=<?= $isArchived ? 'restore' : 'archive' ?>&redirect=../view/back/communication_Backend.php?id=<?= $selectedConversation->id ?>"
+                <a href="/TinyTrack/Controller/updateConversationStatus.php?id=<?= $selectedConversation->id ?>&action=<?= $isArchived ? 'restore' : 'archive' ?>&redirect=/TinyTrack/View/BackOffice/communication/communication_Backend.php?id=<?= $selectedConversation->id ?>"
                   class="btn <?= $isArchived ? 'btn-success' : 'btn-warning' ?>">
                   <i class="fas <?= $isArchived ? 'fa-box-open' : 'fa-box-archive' ?>"></i>
                   <?= $isArchived ? 'Desarchiver' : 'Archiver' ?>
                 </a>
-                <a href="/ProjetCommunication/controller/deleteConversation.php?id=<?= $selectedConversation->id ?>"
+                <a href="/TinyTrack/Controller/deleteConversation.php?id=<?= $selectedConversation->id ?>"
                   class="btn btn-danger" onclick="return confirm('Supprimer cette conversation ?')">
                   <i class="fas fa-trash"></i>
                   Supprimer
@@ -1098,7 +1098,7 @@ include 'template/sidebar.php';
                           </button>
                           <div class="message-menu" id="back-message-menu-<?= (int) $message->id ?>">
                             <a
-                              href="/ProjetCommunication/controller/updateMessageAlert.php?id=<?= (int) $message->id ?>&action=clear&redirect=../view/back/communication_Backend.php?id=<?= (int) $selectedConversation->id ?>">
+                              href="/TinyTrack/Controller/updateMessageAlert.php?id=<?= (int) $message->id ?>&action=clear&redirect=/TinyTrack/View/BackOffice/communication/communication_Backend.php?id=<?= (int) $selectedConversation->id ?>">
                               <i class="fas fa-check"></i>
                               Marquer traitee
                             </a>
@@ -1123,13 +1123,13 @@ include 'template/sidebar.php';
               <?php endif; ?>
             </div>
 
-            <form method="POST" action="/ProjetCommunication/controller/storeMessage.php" class="composer"
+            <form method="POST" action="/TinyTrack/Controller/storeMessage.php" class="composer"
               enctype="multipart/form-data" id="adminMsgForm">
               <input type="hidden" name="conversation_id" value="<?= $selectedConversation->id ?>">
               <input type="hidden" name="sender_id" value="<?= $adminSenderId ?>">
               <input type="hidden" name="sender_role" value="admin">
               <input type="hidden" name="redirect_to"
-                value="../view/back/communication_Backend.php?id=<?= $selectedConversation->id ?>">
+                value="/TinyTrack/View/BackOffice/communication/communication_Backend.php?id=<?= $selectedConversation->id ?>">
 
               <div class="composer-wrap">
                 <div id="aiSuggestionBox" class="ai-suggestion"></div>
@@ -1467,7 +1467,7 @@ include 'template/sidebar.php';
         return sender + ': ' + msg;
       }).join('\n');
 
-      fetch('/ProjetCommunication/controller/ai_autocomplete.php', {
+      fetch('/TinyTrack/Controller/ai_autocomplete.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

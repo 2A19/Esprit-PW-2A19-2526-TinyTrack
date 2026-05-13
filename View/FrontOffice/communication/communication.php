@@ -4,13 +4,13 @@
  * @author Rajhi Amen Allah <amenallah.rajhi@esprit.tn>
  */
 
-require_once __DIR__ . "/../../controller/ConversationController.php";
-require_once __DIR__ . "/../../controller/MessageController.php";
+require_once __DIR__ . "/../../../Controller/ConversationController.php";
+require_once __DIR__ . "/../../../Controller/CommunicationMessageController.php";
 
-$devUser = require __DIR__ . "/../../config/dev_user.php";
+$devUser = require __DIR__ . "/../../../config/dev_user.php";
 
 if (($devUser['page'] ?? 'front') !== 'front') {
-    header('Location: /ProjetCommunication/view/back/communication_Backend.php');
+    header('Location: /TinyTrack/View/BackOffice/communication/communication_Backend.php');
     exit;
 }
 
@@ -33,7 +33,7 @@ $selectedContactId = isset($_GET['contact_id']) ? (int) $_GET['contact_id'] : 0;
 if ($selectedContactId > 0 && in_array($selectedContactId, $contactIds, true)) {
     $createdConversationId = $conversationController->openConversationForUser($currentUserId, $currentUserRole, $selectedContactId);
     if ($createdConversationId) {
-        header('Location: /ProjetCommunication/view/front/communication.php?id=' . (int) $createdConversationId);
+        header('Location: /TinyTrack/View/FrontOffice/communication/communication.php?id=' . (int) $createdConversationId);
         exit;
     }
 }
@@ -47,7 +47,7 @@ $selectedConversation = $selectedConversationId ? $conversationController->show(
 $isArchivedConversation = $selectedConversation && (($selectedConversation->status ?? '') === 'archived');
 
 if ($isArchivedConversation && $currentUserRole !== 'admin') {
-    header('Location: /ProjetCommunication/view/front/communication.php');
+    header('Location: /TinyTrack/View/FrontOffice/communication/communication.php');
     exit;
 }
 
@@ -460,8 +460,8 @@ include 'template/header.php';
                 ));
                 $unreadCount = $contactConversationId ? $messageController->unreadCount($contactConversationId, $currentUserRole) : 0;
                 $contactLink = $contactConversationId > 0
-                  ? '/ProjetCommunication/view/front/communication.php?id=' . (int) $contactConversationId
-                  : '/ProjetCommunication/view/front/communication.php?contact_id=' . (int) $contact->contact_id;
+                  ? '/TinyTrack/View/FrontOffice/communication/communication.php?id=' . (int) $contactConversationId
+                  : '/TinyTrack/View/FrontOffice/communication/communication.php?contact_id=' . (int) $contact->contact_id;
               ?>
               <a href="<?= $contactLink ?>" class="front-conversation-item<?= $isActive ? ' active' : '' ?><?= $contactConversationId === 0 ? ' is-new' : '' ?>">
                 <div class="front-avatar" style="background:#4CAF50;">
@@ -530,7 +530,7 @@ include 'template/header.php';
                     $person = $roles[$message->sender_role] ?? ['label' => $message->sender_role, 'icon' => 'user', 'color' => '#999'];
                     $isFlagged = !empty($message->needs_admin_attention);
                     $canAlertMessage = !$isMine && $currentUserRole !== 'admin' && !$isArchivedConversation;
-                    $messageAlertRedirect = '../view/front/communication.php?id=' . (int) $selectedConversationId;
+                    $messageAlertRedirect = '/TinyTrack/View/FrontOffice/communication/communication.php?id=' . (int) $selectedConversationId;
                   ?>
                   <div class="front-message<?= $isMine ? ' mine' : '' ?><?= $isUnread ? ' unread' : '' ?>">
                     <div class="front-avatar" style="background:<?= $person['color'] ?>;">
@@ -544,7 +544,7 @@ include 'template/header.php';
                           </button>
                           <div class="message-menu" id="front-message-menu-<?= (int) $message->id ?>">
                             <?php if (!$isFlagged): ?>
-                              <a href="/ProjetCommunication/controller/updateMessageAlert.php?id=<?= (int) $message->id ?>&action=claim&redirect=<?= urlencode($messageAlertRedirect) ?>">
+                              <a href="/TinyTrack/Controller/updateMessageAlert.php?id=<?= (int) $message->id ?>&action=claim&redirect=<?= urlencode($messageAlertRedirect) ?>">
                                 <i class="fas fa-bell"></i>
                                 Alerte
                               </a>
@@ -574,7 +574,7 @@ include 'template/header.php';
             <input type="hidden" name="conversation_id" value="<?= (int) $selectedConversationId ?>">
             <input type="hidden" name="sender_id" value="<?= (int) $currentUserId ?>">
             <input type="hidden" name="sender_role" value="<?= htmlspecialchars($currentUserRole) ?>">
-            <input type="hidden" name="redirect_to" value="../view/front/communication.php?id=<?= (int) $selectedConversationId ?>">
+            <input type="hidden" name="redirect_to" value="/TinyTrack/View/FrontOffice/communication/communication.php?id=<?= (int) $selectedConversationId ?>">
 
             <div class="front-compose-wrap">
               <div id="aiSuggestionBox" class="ai-suggestion"></div>
@@ -796,7 +796,7 @@ var msgBody = document.getElementById('msgBody');
           return sender + ': ' + msg;
       }).join('\n');
 
-      fetch('/ProjetCommunication/controller/ai_autocomplete.php', {
+      fetch('/TinyTrack/Controller/ai_autocomplete.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

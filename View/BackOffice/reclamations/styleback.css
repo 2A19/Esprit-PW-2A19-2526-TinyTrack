@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+/* GLOBAL CORE */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* SCROLLBAR CUSTOM */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #0f172a; }
+::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #6366f1; }
+
+.error-msg { color: #ef4444; font-size: 0.8rem; margin-top: 5px; display: block; font-weight: 600; }
+
+/* =========================================
+   BACK THEME (VANTABLACK ULTRA PREMIUM)
+   ========================================= */
+.back-body {
+    background: #020617;
+    color: #f8fafc;
+    background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%);
+}
+
+.back-body .sidebar { 
+    width: 280px; background: rgba(2, 6, 23, 0.95); position: fixed; 
+    height: 100vh; padding: 3rem 2rem; border-right: 1px solid rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px);
+}
+
+.back-body .nav-link {
+    display: flex; align-items: center; gap: 15px; padding: 1.2rem;
+    border-radius: 18px; color: #64748b; text-decoration: none; font-weight: 600; margin-bottom: 1rem;
+}
+
+.back-body .nav-link.active {
+    background: rgba(99, 102, 241, 0.1); color: #fff; border: 1px solid rgba(99, 102, 241, 0.2);
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.1);
+}
+
+.back-body .main-content { margin-left: 280px; padding: 5rem; }
+
+.back-body .glass-panel {
+    background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 32px; padding: 3rem; backdrop-filter: blur(20px);
+}
+
+.back-body .modern-table { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
+.back-body .modern-table tr { background: rgba(30, 41, 59, 0.2); }
+.back-body .modern-table tr:hover { background: rgba(30, 41, 59, 0.5); transform: translateY(-4px); }
+.back-body .modern-table td { padding: 1.8rem 1.5rem; }
+.back-body .modern-table td:first-child { border-radius: 24px 0 0 24px; }
+.back-body .modern-table td:last-child { border-radius: 0 24px 24px 0; }
+
+/* MODAL */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(20px);
+    display: none; justify-content: center; align-items: center; z-index: 2000;
+}
+
+.modal-content {
+    background: #0f172a; width: 650px; border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 40px; padding: 3.5rem; position: relative;
+    box-shadow: 0 0 100px rgba(99, 102, 241, 0.1);
+}
+
+.expert-input {
+    width: 100%; background: #020617; border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.3rem; border-radius: 18px; color: #fff; outline: none; margin-bottom: 0.5rem;
+}
+.expert-input:focus { border-color: #6366f1; box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); }
+
+.btn-expert { padding: 1.1rem 2.5rem; border-radius: 18px; border: none; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; }
+.btn-primary { background: #6366f1; color: #fff; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3); }
+
+.stat-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.03); padding: 2.5rem; border-radius: 32px; }
+
+.badge-pending { background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 0.5rem 1rem; border-radius: 100px; font-weight: 700; }
+.badge-success { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.5rem 1rem; border-radius: 100px; font-weight: 700; }
